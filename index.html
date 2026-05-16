@@ -131,7 +131,32 @@ let sb=null, latestUpload=null, rows=[], previewRows=[], currentProfile=null;
 const $=s=>document.querySelector(s);
 const fmt=n=>n==null||n===''?'-':new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(n)||0);
 const norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'');
-const pick=(obj, keys)=>{const map={}; Object.keys(obj).forEach(k=>map[norm(k)]=k); for(const key of keys){const found=map[norm(key)]; if(found!==undefined) return obj[found]} return ''};
+const pick=(obj, keys)=>{
+  const originalKeys=Object.keys(obj);
+  const map={};
+  originalKeys.forEach(k=>map[norm(k)]=k);
+  for(const key of keys){
+    const wanted=norm(key);
+    const exact=map[wanted];
+    if(exact!==undefined) return obj[exact];
+    const fuzzy=originalKeys.find(k=>norm(k).includes(wanted) || wanted.includes(norm(k)));
+    if(fuzzy!==undefined) return obj[fuzzy];
+  }
+  return '';
+};
+const pickPrice=(obj, type)=>{
+  const keys=Object.keys(obj);
+  const forbidden=k=>['beli','modal','hpp','cost','pokok'].some(x=>norm(k).includes(x));
+  const wanted={
+    pcs:['pcs','pc','satuan','ecer'],
+    dus:['dus','ds','box','karton','ctn'],
+    pak:['pak','pack','pck']
+  }[type];
+  let key=keys.find(k=>!forbidden(k) && norm(k).includes('harga') && norm(k).includes('jual') && wanted.some(w=>norm(k).includes(w)));
+  if(!key) key=keys.find(k=>!forbidden(k) && norm(k).includes('jual') && wanted.some(w=>norm(k).includes(w)));
+  if(!key) key=keys.find(k=>!forbidden(k) && wanted.some(w=>norm(k)===w));
+  return key ? num(obj[key]) : null;
+};
 const num=v=>{if(v==null||v==='')return null; const x=String(v).replace(/[^0-9,.-]/g,'').replace(/\./g,'').replace(',','.'); const n=Number(x); return Number.isFinite(n)?n:null};
 function initSupabase(){
   if(window.supabase){
@@ -218,9 +243,9 @@ function normalizeRow(o){
     name:pick(o,['nama','nama barang','barang','produk','description','nama produk','item name','nama item','merk','product name']),
     stock_text:pick(o,['jumlah','stock','stok','qty','quantity','saldo','sisa','stock gudang','stok gudang'])||'',
     stock_number:num(pick(o,['jumlah','stock','stok','qty','quantity','saldo','sisa','stock gudang','stok gudang'])),
-    price_pcs:num(pick(o,['harga jual pcs','jual pcs','hj pcs','harga pcs','pcs','jual satuan','harga satuan','harga jual satuan'])),
-    price_dus:num(pick(o,['harga jual dus','jual dus','hj dus','harga dus','dus','harga jual ds','jual ds','ds'])),
-    price_pak:num(pick(o,['harga jual pak','jual pak','hj pak','harga pak','pak','harga pack','pack'])),
+    price_pcs:pickPrice(o,'pcs') ?? num(pick(o,['harga jual pcs','jual pcs','hj pcs','harga pcs','pcs','jual satuan','harga satuan','harga jual satuan'])),
+    price_dus:pickPrice(o,'dus') ?? num(pick(o,['harga jual dus','jual dus','hj dus','harga dus','dus','harga jual ds','jual ds','ds','box','karton','ctn'])),
+    price_pak:pickPrice(o,'pak') ?? num(pick(o,['harga jual pak','jual pak','hj pak','harga pak','pak','harga pack','pack'])),
     promos,
     note:pick(o,['keterangan','note','catatan','remark','remarks'])||''
   }
