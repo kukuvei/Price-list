@@ -215,10 +215,43 @@ $('#previewBtn').onclick=async()=>{
     headers.forEach((h,i)=>obj[h]=row[i]??'');
     return obj;
   });
-  previewRows=raw.map(normalizeRow).filter(r=>r.name || r.code);
+  previewRows=parseExcelRows(matrix, headerIndex, raw);
   $('#previewBody').innerHTML=previewRows.length?previewRows.slice(0,200).map(r=>`<tr><td>${esc(r.code)}</td><td>${esc(r.name)}</td><td>${esc(r.stock_text)}</td><td>${fmt(r.price_pcs)}</td><td>${fmt(r.price_dus)}</td><td>${fmt(r.price_pak)}</td><td>${promoHtml(r.promos)}</td></tr>`).join(''):'<tr><td colspan="7" class="muted">Tidak ada baris valid. Header ditemukan, tapi kolom nama/kode belum cocok.</td></tr>';
   $('#uploadBtn').disabled=!previewRows.length;
 };
+function parseExcelRows(matrix, headerIndex, raw){
+  const headers=matrix[headerIndex].map(h=>norm(h));
+  const findCol=(names)=>headers.findIndex(h=>names.some(n=>h===norm(n)||h.includes(norm(n))));
+  const codeCol=findCol(['kode']);
+  const nameCol=findCol(['barang','nama barang','produk']);
+  const packCol=findCol(['kemasan']);
+  const stockCol=findCol(['jumlah','stock','stok']);
+  const jualCol=findCol(['hrg jual','harga jual']);
+
+  if(codeCol>=0 && nameCol>=0 && packCol>=0 && jualCol>=0){
+    const grouped=[];
+    let current=null;
+    matrix.slice(headerIndex+1).forEach(row=>{
+      const code=String(row[codeCol]||'').trim();
+      const name=String(row[nameCol]||'').trim();
+      const pack=String(row[packCol]||'').trim();
+      const stock=stockCol>=0?String(row[stockCol]||'').trim():'';
+      const price=num(row[jualCol]);
+      if(code || name){
+        current={code,name,stock_text:stock,stock_number:num(stock),price_pcs:null,price_dus:null,price_pak:null,promos:{},note:''};
+        grouped.push(current);
+      }
+      if(!current || !pack) return;
+      const p=norm(pack);
+      if(p==='pcs'||p==='pc'||p.includes('satuan')) current.price_pcs=price;
+      else if(p==='pak'||p==='pack'||p==='pck') current.price_pak=price;
+      else if(p==='dus'||p==='ds'||p==='box'||p==='karton'||p==='ctn') current.price_dus=price;
+      else if(new RegExp('^d?s?[0-9]+$').test(p)||p.includes('promo')) current.promos[pack]=price;
+    });
+    return grouped.filter(r=>r.name||r.code);
+  }
+  return raw.map(normalizeRow).filter(r=>r.name || r.code);
+}
 function findHeaderRow(matrix){
   const scoreRow=row=>row.reduce((score,cell)=>{
     const c=norm(cell);
