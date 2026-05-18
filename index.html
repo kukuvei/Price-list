@@ -361,22 +361,31 @@ function setPrice(item, pack, price){
   const key=`price_${pack.type}`;
   const pkey=`_priority_${pack.type}`;
   const currentPriority = item[pkey] || 0;
-  if(item[key]==null || pack.priority >= currentPriority){
-    item[key]=price;
-    item[pkey]=pack.priority;
-    item._base_labels[pack.type]=pack.label || '';
+
+  if(pack.promo){
+    if(item[key]==null){
+      item[key]=price;
+      item[pkey]=pack.priority;
+    }
+    if(pack.label){
+      item.promos[pack.label]=price;
+    }
+  }else{
+    if(item[key]==null || pack.priority >= currentPriority){
+      item[key]=price;
+      item[pkey]=pack.priority;
+      item._base_labels[pack.type]=pack.label || '';
+    }
+    const baseLabel = item._base_labels[pack.type];
+    if(baseLabel && item.promos[baseLabel] != null){
+      delete item.promos[baseLabel];
+    }
   }
+
   if(pack.type==='dus'){
     const label=norm(pack.label);
     if(label.includes('zak') || /^z\d+$/.test(label)) item.price_zak = price;
     if(label.includes('bal') || /^b\d+$/.test(label)) item.price_bal = price;
-  }
-  if(pack.label && pack.promo){
-    item.promos[pack.label]=price;
-  }
-  const baseLabel = item._base_labels[pack.type];
-  if(baseLabel && item.promos[baseLabel] != null){
-    delete item.promos[baseLabel];
   }
 }
 
