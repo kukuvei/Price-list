@@ -26,7 +26,6 @@
           <button class="tab" data-tab="admin">Admin</button>
         </div>
         <div class="row">
-          <button class="btn secondary" id="setupBtn">Setup Supabase</button>
           <button class="btn secondary" id="refreshBtn">Refresh Data</button>
         </div>
       </div>
@@ -40,6 +39,17 @@
         <div class="card"><div class="label">Produk Ada Promo</div><div class="metric" id="mPromo">0</div></div>
         <div class="card"><div class="label">Update Terakhir</div><div class="metric" id="mUpdated">-</div></div>
         <div class="card"><div class="label">Upload Oleh</div><div class="metric" id="mBy">-</div></div>
+      </div>
+
+      <div id="salesAuthNotice" class="notice hide">Silakan login terlebih dahulu untuk melihat data pricelist.</div>
+      <div id="salesLoginBox" class="card hide" style="margin-bottom:16px">
+        <h2>Login Pengguna</h2>
+        <div class="row">
+          <input class="input" id="salesEmail" type="email" placeholder="Email" />
+          <input class="input" id="salesPassword" type="password" placeholder="Password" />
+          <button class="btn" id="salesLoginBtn">Login</button>
+        </div>
+        <p class="small">Akses Sales dan Admin sama-sama wajib login. Hak akses ditentukan dari tabel user_roles di Supabase.</p>
       </div>
       <div class="toolbar">
         <div class="search">
@@ -56,7 +66,7 @@
       <div id="loginBox" class="card">
         <h2>Login Admin</h2>
         <div class="row"><input class="input" id="email" type="email" placeholder="Email admin" /><input class="input" id="password" type="password" placeholder="Password" /><button class="btn" id="loginBtn">Login</button></div>
-        <p class="small">Buat user di Supabase Authentication. Hak akses Admin/Sales diatur dari UUID user pada variabel USER_ROLES di kode.</p>
+        <p class="small">Buat user di Supabase Authentication. Hak akses Admin/Sales diatur dari tabel public.user_roles di Supabase.</p>
       </div>
       <div id="adminBox" class="hide">
         <div class="card">
@@ -70,63 +80,11 @@
     </section>
   </main>
 
-  <div class="modal" id="setupModal">
-    <div class="card">
-      <div class="toolbar"><h2>Setup Supabase</h2><button class="btn secondary" id="closeSetup">Tutup</button></div>
-      <p>Supabase sudah diisi dari kode. Form ini tetap tersedia bila nanti project URL atau publishable key berubah.</p>
-      <div class="row"><input class="input" id="supabaseUrl" placeholder="https://xxxx.supabase.co" /><input class="input" id="supabaseKey" placeholder="anon public key" /><button class="btn" id="saveSetup">Simpan</button></div>
-      <h3>SQL untuk Supabase</h3>
-      <pre id="sqlText">create table if not exists public.price_uploads (
-  id uuid primary key default gen_random_uuid(),
-  uploaded_at timestamptz not null default now(),
-  uploaded_by text,
-  filename text
-);
-
-create table if not exists public.price_items (
-  id bigserial primary key,
-  upload_id uuid references public.price_uploads(id) on delete cascade,
-  code text,
-  name text not null,
-  stock_text text,
-  stock_number numeric,
-  price_pcs numeric,
-  price_dus numeric,
-  price_pak numeric,
-  promos jsonb default '{}'::jsonb,
-  note text,
-  created_at timestamptz not null default now()
-);
-
-alter table public.price_uploads enable row level security;
-alter table public.price_items enable row level security;
-
-create policy "public read uploads" on public.price_uploads for select using (true);
-create policy "public read items" on public.price_items for select using (true);
-create policy "admin insert uploads" on public.price_uploads for insert to authenticated with check (true);
-create policy "admin insert items" on public.price_items for insert to authenticated with check (true);
-create policy "admin delete uploads" on public.price_uploads for delete to authenticated using (true);
-create policy "admin delete items" on public.price_items for delete to authenticated using (true);
-
-grant select on public.price_uploads to anon;
-grant select on public.price_items to anon;
-grant select, insert, delete on public.price_uploads to authenticated;
-grant select, insert, delete on public.price_items to authenticated;
-grant usage, select on sequence public.price_items_id_seq to authenticated;</pre>
-    </div>
-  </div>
 
 <script>
 
 const SUPABASE_URL = "https://mitjosxpyeydjdrpuszl.supabase.co";
 const SUPABASE_KEY = "sb_publishable_-wwqDu_np893Rg32XajLEQ_w0-5MvBD";
-
-// Isi UUID user Supabase Auth sesuai akun masing-masing.
-// Catatan: contoh yang diberikan Admin dan Sales 01 masih sama, jadi aksesnya akan dianggap Admin.
-const USER_ROLES = {
-  "939e3199-13c3-4d02-91d8-ffea5f5af023": { name: "Admin", role: "admin" },
-  // "ISI_UUID_SALES_01_DI_SINI": { name: "Sales 01", role: "sales" }
-};
 
 let sb=null, latestUpload=null, rows=[], previewRows=[], currentProfile=null;
 const $=s=>document.querySelector(s);
@@ -137,10 +95,8 @@ const pick=(obj, keys)=>{const map={}; Object.keys(obj).forEach(k=>map[norm(k)]=
 const num=v=>{if(v==null||v==='')return null; const x=String(v).replace(/[^0-9,.-]/g,'').replace(/\./g,'').replace(',','.'); const n=Number(x); return Number.isFinite(n)?n:null};
 
 function initSupabase(){
-  if(window.supabase){
-    const url = localStorage.getItem('sb_url') || SUPABASE_URL;
-    const key = localStorage.getItem('sb_key') || SUPABASE_KEY;
-    sb = window.supabase.createClient(url,key);
+  if(window.supabase && !sb){
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   }
   return sb;
 }
@@ -148,36 +104,72 @@ function initSupabase(){
 function showTab(name){
   document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
   document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id===name));
-  if(name==='admin') checkAuth();
+  if(name==='admin' || name==='sales') checkAuth();
 }
 
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
 
-$('#setupBtn').onclick=()=>{
-  $('#supabaseUrl').value=localStorage.getItem('sb_url')||'';
-  $('#supabaseKey').value=localStorage.getItem('sb_key')||'';
-  $('#setupModal').classList.add('open');
-};
-$('#closeSetup').onclick=()=>$('#setupModal').classList.remove('open');
-$('#saveSetup').onclick=()=>{
-  localStorage.setItem('sb_url',$('#supabaseUrl').value.trim());
-  localStorage.setItem('sb_key',$('#supabaseKey').value.trim());
-  initSupabase();
-  $('#setupModal').classList.remove('open');
-  loadData();
-};
 $('#refreshBtn').onclick=()=>loadData();
+
+async function getRoleProfile(user){
+  if(!user) return null;
+  const { data, error } = await sb
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', user.id)
+    .maybeSingle();
+  if(error && !String(error.message||'').includes('0 rows')) throw error;
+  return { name: user.email || 'User', role: data?.role || 'sales' };
+}
+
+async function syncAuthUI(){
+  const { data, error } = await sb.auth.getUser();
+  if(error) throw error;
+  const user = data?.user || null;
+  currentProfile = user ? await getRoleProfile(user) : null;
+  const isLoggedIn = !!user;
+  const isAdmin = currentProfile?.role === 'admin';
+
+  $('#salesAuthNotice').classList.toggle('hide', isLoggedIn);
+  $('#salesLoginBox').classList.toggle('hide', isLoggedIn);
+  document.querySelector('#sales .toolbar').classList.toggle('hide', !isLoggedIn);
+  document.querySelector('#sales .tablebox').classList.toggle('hide', !isLoggedIn);
+
+  $('#loginBox').classList.toggle('hide', !!user && isAdmin);
+  $('#adminBox').classList.toggle('hide', !isAdmin);
+  $('#adminUser').textContent = user ? `Login sebagai ${currentProfile.name} (${currentProfile.role})` : '';
+
+  if(user && !isAdmin){
+    $('#loginBox').classList.remove('hide');
+  }
+  return { user, isAdmin };
+}
 
 async function loadData(){
   initSupabase();
-  if(!sb){renderRows([]);return alert('Isi Setup Supabase dahulu.');}
-  const {data:up}=await sb.from('price_uploads').select('*').order('uploaded_at',{ascending:false}).limit(1);
-  latestUpload=up&&up[0];
-  if(!latestUpload){rows=[];renderRows([]);return;}
-  const {data,error}=await sb.from('price_items').select('*').eq('upload_id',latestUpload.id).order('name');
-  if(error)return alert(error.message);
-  rows=(data||[]).map(applyDusFallback).map(normalizePromoOrder);
-  renderRows(rows);
+  if(!sb) return;
+  try{
+    const { user } = await syncAuthUI();
+    if(!user){
+      latestUpload = null;
+      rows = [];
+      renderRows([]);
+      return;
+    }
+    const {data:up,error:upErr}=await sb.from('price_uploads').select('*').order('uploaded_at',{ascending:false}).limit(1);
+    if(upErr) throw upErr;
+    latestUpload=up&&up[0];
+    if(!latestUpload){rows=[];renderRows([]);return;}
+    const {data,error}=await sb.from('price_items').select('*').eq('upload_id',latestUpload.id).order('name');
+    if(error) throw error;
+    rows=(data||[]).map(applyDusFallback).map(normalizePromoOrder);
+    renderRows(rows);
+  }catch(err){
+    latestUpload = null;
+    rows = [];
+    renderRows([]);
+    alert(err.message || 'Gagal memuat data.');
+  }
 }
 
 function renderRows(data){
@@ -189,7 +181,7 @@ function renderRows(data){
   $('#mProducts').textContent=data.length;
   $('#mPromo').textContent=data.filter(r=>promoCount(r.promos)>0).length;
   $('#mUpdated').textContent=latestUpload?new Date(latestUpload.uploaded_at).toLocaleString('id-ID'):'-';
-  $('#mBy').textContent=latestUpload?.uploaded_by||'-';
+  $('#mBy').textContent=currentProfile?.role==='admin' ? (latestUpload?.uploaded_by||'-') : '-';
   $('#tbody').innerHTML=out.length?out.map(rowHtml).join(''):'<tr><td colspan="8" class="muted">Data tidak ditemukan.</td></tr>';
 }
 
@@ -252,33 +244,29 @@ $('#exportBtn').onclick=()=>{
 
 async function checkAuth(){
   initSupabase();
-  if(!sb)return;
-  const {data}=await sb.auth.getUser();
-  const user=data?.user;
-  currentProfile = user ? (USER_ROLES[user.id] || { name:user.email, role:'sales' }) : null;
-  const isAdmin = currentProfile?.role === 'admin';
-  $('#loginBox').classList.toggle('hide',!!user && isAdmin);
-  $('#adminBox').classList.toggle('hide',!isAdmin);
-  $('#adminUser').textContent=user?`Login sebagai ${currentProfile.name} (${currentProfile.role})`:'';
-  if(user && !isAdmin){
-    $('#loginBox').classList.remove('hide');
-    alert('Akun ini bukan Admin, jadi tidak bisa upload data. Tab Sales tetap bisa digunakan.');
+  if(!sb) return;
+  try{
+    await syncAuthUI();
+  }catch(err){
+    alert(err.message || 'Gagal memeriksa sesi login.');
   }
 }
 
-$('#loginBtn').onclick=async()=>{
+async function loginWith(email, password){
   initSupabase();
-  if(!sb)return alert('Isi Setup Supabase dahulu.');
-  const {error}=await sb.auth.signInWithPassword({email:$('#email').value,password:$('#password').value});
-  if(error)return alert(error.message);
-  checkAuth();
-};
+  if(!sb) return alert('Konfigurasi Supabase belum tersedia.');
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if(error) return alert(error.message);
+  await loadData();
+}
+
+$('#loginBtn').onclick=async()=>loginWith($('#email').value, $('#password').value);
+$('#salesLoginBtn').onclick=async()=>loginWith($('#salesEmail').value, $('#salesPassword').value);
 
 $('#logoutBtn').onclick=async()=>{
   await sb.auth.signOut();
-  checkAuth();
+  await loadData();
 };
-
 
 async function parseFileToRows(file){
   if(!file) return [];
@@ -357,27 +345,6 @@ function findGroupedHeader(rows){
 
 function looksLikeGroupedPricelist(rows){
   return !!findGroupedHeader(rows);
-}
-
-
-function isStrictPromoLabel(value){
-  return /^(ds|d|z|b)\d+$/i.test(text(value));
-}
-
-function findStrictPromoLabelInRow(row, packIdx, satuanIdx, stockIdx){
-  const preferred = [];
-  if(packIdx >= 0) preferred.push(row?.[packIdx]);
-  if(satuanIdx >= 0) preferred.push(row?.[satuanIdx]);
-  for(const val of preferred){
-    const t = text(val);
-    if(isStrictPromoLabel(t)) return t;
-  }
-  for(let i=0;i<(row?.length||0);i++){
-    if(i===stockIdx) continue;
-    const t = text(row?.[i]);
-    if(isStrictPromoLabel(t)) return t;
-  }
-  return '';
 }
 
 function classifyPackage(kemasan, satuan){
@@ -531,14 +498,7 @@ function parseGroupedPricelist(rows){
     }
 
     const pack=classifyPackage(kemasan,satuan);
-    const strictPromoLabel = findStrictPromoLabelInRow(row, packIdx, satuanIdx, stockIdx);
-
-    if(strictPromoLabel && sellPrice!=null){
-      const promoPack = { type:'dus', priority:2, promo:true, label:strictPromoLabel, group:'dus' };
-      setPrice(current, promoPack, sellPrice);
-    } else {
-      setPrice(current, pack, sellPrice);
-    }
+    setPrice(current, pack, sellPrice);
   }
 
   if(current?.name) items.push(applyDusFallback(current));
@@ -548,12 +508,10 @@ function parseGroupedPricelist(rows){
 function normalizeFlatRow(o){
   const promos={};
   Object.keys(o).forEach(k=>{
-    const keyText = text(k);
     const nk=norm(k);
-    const strict = /^(ds|d|z|b)\d+$/i.test(keyText);
-    if(strict || nk.includes('promo')){
+    if(/^d?s?\d+$/.test(nk)||/^ds\d+$/.test(nk)||/^z\d+$/.test(nk)||/^b\d+$/.test(nk)||nk.includes('promo')){
       const v=num(o[k]);
-      if(v!=null && (strict || num(o[k])!=null)) promos[keyText]=v;
+      if(v!=null) promos[k.trim()]=v;
     }
   });
 
