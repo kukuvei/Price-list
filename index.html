@@ -176,7 +176,7 @@ async function loadData(){
   if(!latestUpload){rows=[];renderRows([]);return;}
   const {data,error}=await sb.from('price_items').select('*').eq('upload_id',latestUpload.id).order('name');
   if(error)return alert(error.message);
-  rows=(data||[]).map(applyDusFallback);
+  rows=(data||[]).map(applyDusFallback).map(normalizePromoOrder);
   renderRows(rows);
 }
 
@@ -194,20 +194,13 @@ function renderRows(data){
 }
 
 function promoHtml(p){
-  let promos = p;
-  if(typeof promos === 'string'){
-    try{ promos = JSON.parse(promos) }catch(_){ promos = {} }
-  }
-  if(!promos||!Object.keys(promos).length)return '-';
-  return Object.entries(promos).map(([k,v])=>`<span class="promo">${esc(k)}: ${fmt(v)}</span>`).join(' ');
+  const entries = promoSortEntries(p);
+  if(!entries.length)return '-';
+  return entries.map(([k,v])=>`<span class="promo">${esc(k)}: ${fmt(v)}</span>`).join(' ');
 }
 
 function promoCount(p){
-  let promos = p;
-  if(typeof promos === 'string'){
-    try{ promos = JSON.parse(promos) }catch(_){ promos = {} }
-  }
-  return promos && typeof promos === 'object' ? Object.keys(promos).length : 0;
+  return promoSortEntries(p).length;
 }
 
 function rowHtml(r){
@@ -278,13 +271,50 @@ $('#logoutBtn').onclick=async()=>{
   checkAuth();
 };
 
-$('#previewBtn').onclick=async()=>{
-  const file=$('#file').files[0];
-  if(!file)return alert('Pilih file Excel dahulu.');
+
+async function parseFileToRows(file){
+  if(!file) return [];
   const buf=await file.arrayBuffer();
   const wb=XLSX.read(buf,{type:'array'});
   const sheet=wb.Sheets[wb.SheetNames[0]];
-  previewRows=extractRowsFromSheet(sheet);
+  return extractRowsFromSheet(sheet).map(normalizePromoOrder);
+}
+
+function promoSortEntries(promos){
+  let obj = promos;
+  if(typeof obj === 'string'){
+    try{ obj = JSON.parse(obj) }catch(_){ obj = {} }
+  }
+  if(!obj || typeof obj !== 'object') return [];
+  return Object.entries(obj).sort((a,b)=>{
+    const pa = promoRank(a[0]);
+    const pb = promoRank(b[0]);
+    if(pa.group !== pb.group) return pa.group - pb.group;
+    if(pa.num !== pb.num) return pa.num - pb.num;
+    return String(a[0]).localeCompare(String(b[0]), 'id', {sensitivity:'base'});
+  });
+}
+
+function promoRank(label){
+  const s = norm(label);
+  const m = s.match(/^(ds|d|z|b)(\d+)$/i);
+  if(!m) return {group:99, num:9999};
+  const groupMap = { d:1, ds:2, z:3, b:4 };
+  return { group: groupMap[m[1].toLowerCase()] || 99, num: Number(m[2]||9999) };
+}
+
+function normalizePromoOrder(item){
+  if(!item) return item;
+  const ordered = {};
+  promoSortEntries(item.promos||{}).forEach(([k,v])=> ordered[k]=v);
+  item.promos = ordered;
+  return item;
+}
+
+$('#previewBtn').onclick=async()=>{
+  const file=$('#file').files[0];
+  if(!file)return alert('Pilih file Excel dahulu.');
+  previewRows=await parseFileToRows(file);
   $('#previewBody').innerHTML=previewRows.length
     ? previewRows.slice(0,200).map(r=>`<tr><td>${esc(r.code)}</td><td>${esc(r.name)}</td><td>${esc(r.stock_text)}</td><td>${fmt(r.price_pcs)}</td><td>${fmt(r.price_dus)}</td><td>${fmt(r.price_pak)}</td><td>${promoHtml(r.promos)}</td></tr>`).join('')
     : '<tr><td colspan="7" class="muted">Tidak ada baris valid.</td></tr>';
@@ -513,16 +543,20 @@ $('#uploadBtn').onclick=async()=>{
   const {data:u}=await sb.auth.getUser();
   if(!u?.user)return alert('Login admin dahulu.');
   const file=$('#file').files[0];
+  if(!file)return alert('Pilih file Excel dahulu.');
+  const freshRows = await parseFileToRows(file);
+  if(!freshRows.length)return alert('File Excel terbaca kosong / tidak valid.');
+  previewRows = freshRows;
   const {data:upload,error:e1}=await sb.from('price_uploads').insert({uploaded_by:u.user.email,filename:file.name}).select().single();
   if(e1)return alert(e1.message);
-  const payload=previewRows.map(r=>dbRow(r, upload.id));
+  const payload=freshRows.map(r=>dbRow(r, upload.id));
   for(let i=0;i<payload.length;i+=500){
     const {error}=await sb.from('price_items').insert(payload.slice(i,i+500));
     if(error)return alert(error.message);
   }
-  alert('Upload berhasil. Tab Sales sudah memakai data terbaru. Harga Zak/Bal sekarang otomatis masuk ke kolom Harga DUS.');
+  alert('Upload berhasil. File di-parse ulang saat upload, jadi promo D/DS/Z/B mengikuti isi Excel terbaru.');
   latestUpload=upload;
-  rows=payload;
+  rows=payload.map(normalizePromoOrder);
   renderRows(rows);
   showTab('sales');
 };
