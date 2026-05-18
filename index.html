@@ -44,7 +44,7 @@
       </div>
       <div class="toolbar">
         <div class="search">
-          <input class="input" id="q" placeholder="Cari kode / nama barang..." />
+          <input class="input" id="q" placeholder="Cari kode / nama barang..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
           <select id="promoFilter"><option value="all">Semua produk</option><option value="promo">Hanya promo</option><option value="stock">Stock tersedia</option></select>
         </div>
         <button class="btn ok hide" id="exportBtn">Export Tampilan</button>
@@ -201,7 +201,19 @@ async function loadData(){
   const {data,error}=await sb.from('price_items').select('*').eq('upload_id',latestUpload.id).order('name');
   if(error)return alert(error.message);
   rows=(data||[]).map(applyDusFallback).map(normalizePromoOrder);
+  clearSearchIfLooksLikeEmail();
   renderRows(rows);
+}
+
+
+function clearSearchIfLooksLikeEmail(force=false){
+  const qEl = $('#q');
+  if(!qEl) return;
+  const val = String(qEl.value || '').trim();
+  const looksLikeEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+  if(force || looksLikeEmail){
+    qEl.value = '';
+  }
 }
 
 function renderRows(data){
@@ -251,6 +263,7 @@ function rowHtml(r){
 
 function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 
+$('#q').onfocus=()=>clearSearchIfLooksLikeEmail();
 $('#q').oninput=()=>renderRows(rows);
 $('#promoFilter').onchange=()=>renderRows(rows);
 
