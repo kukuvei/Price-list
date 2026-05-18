@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Approval User - Garuda Abadi Sinergi</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root{--bg:#f6f7fb;--card:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;--pri:#2563eb;--ok:#16a34a;--bad:#dc2626;--warn:#f59e0b;--shadow:0 10px 30px rgba(15,23,42,.08)}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    header{background:linear-gradient(135deg,#1d4ed8,#0f172a);color:#fff;padding:28px 20px}
+    .wrap{max-width:1180px;margin:auto}
+    h1{margin:0;font-size:28px}
+    .sub{margin-top:8px;opacity:.9}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:18px}
+    .welcome{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:8px 12px;font-weight:700}
+    .btn{border:0;border-radius:12px;padding:11px 16px;font-weight:700;cursor:pointer}
+    .btn.primary{background:var(--pri);color:#fff}.btn.ok{background:var(--ok);color:#fff}.btn.bad{background:var(--bad);color:#fff}.btn.secondary{background:#eef2ff;color:#1d4ed8}.btn.warn{background:var(--warn);color:#111827}
+    main{padding:22px 20px 50px}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow)}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .input{border:1px solid var(--line);border-radius:12px;padding:11px 12px;background:#fff;min-width:220px}
+    .small{font-size:12px;color:var(--muted)}
+    .hide{display:none!important}
+    .notice{border-left:4px solid var(--pri);background:#eff6ff;padding:12px 14px;border-radius:12px;margin-bottom:16px}
+    .toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+    table{border-collapse:collapse;width:100%}
+    th,td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+    th{background:#f9fafb;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#374151}
+    .tablebox{overflow:auto;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);margin-top:14px}
+    .pill{display:inline-block;border-radius:999px;padding:4px 8px;font-weight:700;font-size:12px}
+    .pill.pending{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa}
+    .pill.active{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
+    .pill.inactive{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+    @media(max-width:900px){.grid{grid-template-columns:1fr}.input{min-width:100%}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>Approval User</h1>
+      <div class="sub">Halaman terpisah untuk registrasi user baru, approve/reject, dan nonaktifkan user.</div>
+      <div class="topbar">
+        <div class="welcome" id="welcomeUser">Belum login</div>
+        <div class="row">
+          <button class="btn secondary" id="refreshBtn">Refresh</button>
+          <button class="btn bad hide" id="logoutBtn">Logout</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="notice">
+      Halaman ini sengaja dipisah dari dashboard pricelist supaya upload Excel dan parser promo tetap stabil.
+      Registrasi user baru akan masuk ke pending approval. Hanya admin yang bisa approve, reject, nonaktifkan, atau aktifkan lagi.
+    </div>
+
+    <section id="authSection" class="grid">
+      <div class="card">
+        <h2>Login Admin</h2>
+        <div class="row">
+          <input class="input" id="loginEmail" type="email" placeholder="Email" />
+          <input class="input" id="loginPassword" type="password" placeholder="Password" />
+          <button class="btn primary" id="loginBtn">Login</button>
+        </div>
+        <p class="small">Login di sini dipakai untuk approve/reject user dan mengatur status aktif user.</p>
+      </div>
+
+      <div class="card">
+        <h2>Registrasi User Baru</h2>
+        <div class="row">
+          <input class="input" id="regName" placeholder="Nama lengkap" />
+          <input class="input" id="regEmail" type="email" placeholder="Email user baru" />
+          <input class="input" id="regPassword" type="password" placeholder="Password minimal 8 karakter" />
+          <button class="btn ok" id="registerBtn">Kirim Registrasi</button>
+        </div>
+        <p class="small">User baru tidak langsung aktif. Data masuk ke pending approval lebih dulu.</p>
+      </div>
+    </section>
+
+    <section id="adminSection" class="hide">
+      <div class="card">
+        <div class="toolbar">
+          <div>
+            <h2 style="margin:0">Pending Approval</h2>
+            <div class="small">Admin approve atau reject user baru dari sini.</div>
+          </div>
+          <button class="btn secondary" id="refreshPendingBtn">Refresh Pending</button>
+        </div>
+        <div class="tablebox">
+          <table>
+            <thead><tr><th>Nama</th><th>Email</th><th>Status</th><th>Diminta</th><th>Aksi</th></tr></thead>
+            <tbody id="pendingBody"><tr><td colspan="5" class="small">Belum ada data pending.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="toolbar">
+          <div>
+            <h2 style="margin:0">User Terdaftar</h2>
+            <div class="small">Nonaktifkan user tanpa menghapus akun.</div>
+          </div>
+          <button class="btn secondary" id="refreshUsersBtn">Refresh User</button>
+        </div>
+        <div class="tablebox">
+          <table>
+            <thead><tr><th>Nama</th><th>Role</th><th>Status</th><th>User ID</th><th>Aksi</th></tr></thead>
+            <tbody id="usersBody"><tr><td colspan="5" class="small">Belum ada data user.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+<script>
+const SUPABASE_URL = "https://mitjosxpyeydjdrpuszl.supabase.co";
+const SUPABASE_KEY = "sb_publishable_-wwqDu_np893Rg32XajLEQ_w0-5MvBD";
+let sb = null;
+let currentUser = null;
+let currentRole = null;
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmtDate = v => v ? new Date(v).toLocaleString('id-ID') : '-';
+
+function initSupabase(){
+  if(window.supabase && !sb){
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  }
+  return sb;
+}
+
+async function getAccessToken(){
+  const { data } = await sb.auth.getSession();
+  return data?.session?.access_token || '';
+}
+
+async function loadProfile(){
+  initSupabase();
+  const { data } = await sb.auth.getUser();
+  currentUser = data?.user || null;
+
+  if(!currentUser){
+    currentRole = null;
+    updateUI();
+    return;
+  }
+
+  const { data: roleRow, error } = await sb
+    .from('user_roles')
+    .select('role, display_name, is_active')
+    .eq('user_id', currentUser.id)
+    .maybeSingle();
+
+  if(error){
+    alert(error.message);
+    await sb.auth.signOut();
+    currentUser = null;
+    currentRole = null;
+    updateUI();
+    return;
+  }
+
+  if(!roleRow){
+    alert('Akun ini belum punya role.');
+    await sb.auth.signOut();
+    currentUser = null;
+    currentRole = null;
+    updateUI();
+    return;
+  }
+
+  if(roleRow.is_active === false){
+    alert('Akun ini sedang nonaktif.');
+    await sb.auth.signOut();
+    currentUser = null;
+    currentRole = null;
+    updateUI();
+    return;
+  }
+
+  currentRole = roleRow;
+  updateUI();
+
+  if(roleRow.role === 'admin'){
+    await loadPending();
+    await loadUsers();
+  }
+}
+
+function updateUI(){
+  const welcome = $('#welcomeUser');
+  const isLogged = !!currentUser;
+  const isAdmin = currentRole?.role === 'admin';
+  const name = currentRole?.display_name || currentUser?.email || 'Belum login';
+  const role = currentRole?.role ? ` (${currentRole.role})` : '';
+  welcome.textContent = isLogged ? `Welcome ${name}${role}` : 'Belum login';
+  $('#logoutBtn').classList.toggle('hide', !isLogged);
+  $('#authSection').classList.toggle('hide', isAdmin);
+  $('#adminSection').classList.toggle('hide', !isAdmin);
+}
+
+async function registerUser(){
+  const full_name = $('#regName').value.trim();
+  const email = $('#regEmail').value.trim();
+  const password = $('#regPassword').value;
+  if(!full_name || !email || !password) return alert('Nama, email, dan password wajib diisi.');
+
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/register-request`, {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`
+    },
+    body: JSON.stringify({ full_name, email, password })
+  });
+
+  const out = await res.json().catch(()=>({error:'Gagal membaca response'}));
+  if(!res.ok) return alert(out.error || 'Registrasi gagal.');
+  alert(out.message || 'Registrasi berhasil dikirim.');
+  $('#regName').value = '';
+  $('#regEmail').value = '';
+  $('#regPassword').value = '';
+}
+
+async function login(){
+  initSupabase();
+  const email = $('#loginEmail').value.trim();
+  const password = $('#loginPassword').value;
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if(error) return alert(error.message);
+  await loadProfile();
+}
+
+async function logout(){
+  await sb.auth.signOut();
+  currentUser = null;
+  currentRole = null;
+  updateUI();
+}
+
+function pendingRowHtml(r){
+  return `<tr>
+    <td>${esc(r.full_name)}</td>
+    <td>${esc(r.email || '-')}</td>
+    <td><span class="pill pending">${esc(r.status)}</span></td>
+    <td>${esc(fmtDate(r.requested_at))}</td>
+    <td>
+      <div class="row">
+        <button class="btn ok" onclick="approvePending('${esc(r.id)}')">Approve</button>
+        <button class="btn bad" onclick="rejectPending('${esc(r.id)}')">Reject</button>
+      </div>
+    </td>
+  </tr>`;
+}
+
+function userRowHtml(r){
+  const active = r.is_active !== false;
+  return `<tr>
+    <td>${esc(r.display_name || '-')}</td>
+    <td>${esc(r.role || '-')}</td>
+    <td><span class="pill ${active ? 'active':'inactive'}">${active ? 'Aktif':'Nonaktif'}</span></td>
+    <td>${esc(r.user_id)}</td>
+    <td>
+      ${r.role === 'admin'
+        ? '<span class="small">Admin tidak bisa dinonaktifkan dari sini.</span>'
+        : `<button class="btn ${active ? 'warn':'ok'}" onclick="toggleActive('${esc(r.user_id)}', ${active ? 'false':'true'})">${active ? 'Nonaktifkan':'Aktifkan Lagi'}</button>`
+      }
+    </td>
+  </tr>`;
+}
+
+async function loadPending(){
+  const { data, error } = await sb
+    .from('pending_registrations')
+    .select('id, full_name, email, status, requested_at')
+    .eq('status','pending')
+    .order('requested_at',{ascending:false});
+  if(error) return alert(error.message);
+  $('#pendingBody').innerHTML = data?.length ? data.map(pendingRowHtml).join('') : '<tr><td colspan="5" class="small">Belum ada data pending.</td></tr>';
+}
+
+async function loadUsers(){
+  const { data, error } = await sb
+    .from('user_roles')
+    .select('user_id, role, display_name, is_active')
+    .order('role')
+    .order('display_name');
+  if(error) return alert(error.message);
+  $('#usersBody').innerHTML = data?.length ? data.map(userRowHtml).join('') : '<tr><td colspan="5" class="small">Belum ada data user.</td></tr>';
+}
+
+async function approvePending(id){
+  const token = await getAccessToken();
+  if(!token) return alert('Login admin dahulu.');
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/approve-registration`, {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({ registration_id:id, decision:'approve' })
+  });
+  const out = await res.json().catch(()=>({error:'Gagal membaca response'}));
+  if(!res.ok) return alert(out.error || 'Approve gagal.');
+  alert(out.message || 'User berhasil di-approve.');
+  await loadPending();
+  await loadUsers();
+}
+
+async function rejectPending(id){
+  const token = await getAccessToken();
+  if(!token) return alert('Login admin dahulu.');
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/approve-registration`, {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({ registration_id:id, decision:'reject' })
+  });
+  const out = await res.json().catch(()=>({error:'Gagal membaca response'}));
+  if(!res.ok) return alert(out.error || 'Reject gagal.');
+  alert(out.message || 'User berhasil ditolak.');
+  await loadPending();
+}
+
+async function toggleActive(user_id, is_active){
+  const token = await getAccessToken();
+  if(!token) return alert('Login admin dahulu.');
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/toggle-user-active`, {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({ user_id, is_active })
+  });
+  const out = await res.json().catch(()=>({error:'Gagal membaca response'}));
+  if(!res.ok) return alert(out.error || 'Ubah status user gagal.');
+  alert(out.message || 'Status user berhasil diubah.');
+  await loadUsers();
+}
+
+window.approvePending = approvePending;
+window.rejectPending = rejectPending;
+window.toggleActive = toggleActive;
+
+$('#loginBtn').onclick = login;
+$('#logoutBtn').onclick = logout;
+$('#registerBtn').onclick = registerUser;
+$('#refreshBtn').onclick = loadProfile;
+$('#refreshPendingBtn').onclick = loadPending;
+$('#refreshUsersBtn').onclick = loadUsers;
+
+initSupabase();
+loadProfile();
+</script>
+</body>
+</html>
