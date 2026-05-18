@@ -63,7 +63,7 @@
           <div class="toolbar"><div><h2>Upload Pricelist Terbaru</h2><div class="small" id="adminUser"></div></div><button class="btn danger" id="logoutBtn">Logout</button></div>
           <div class="drop"><input type="file" id="file" accept=".xlsx,.xls,.csv" /><p>Pilih file Excel dari sistem. Sheet pertama akan dibaca.</p></div>
           <div class="row"><button class="btn" id="previewBtn">Preview</button><button class="btn ok" id="uploadBtn" disabled>Upload ke Supabase</button></div>
-          <p class="small">Kolom yang dikenali otomatis: kode, nama barang, jumlah/stock, harga jual pcs, harga jual dus, harga jual pak, harga jual zak, harga jual bal, dan promo. Untuk format raw report bertingkat, kemasan Dus / Zak / Bal otomatis digabung ke kolom Harga DUS. Kolom harga beli tidak akan disimpan.</p>
+          <p class="small">Kolom yang dikenali otomatis: kode, nama barang, jumlah/stock, isi dus, isi pak, harga jual pcs, harga jual dus, harga jual pak, promo Ds4/Ds7/D21/dll. Kolom harga beli tidak akan disimpan.</p>
         </div>
         <div class="tablebox" style="margin-top:16px"><table><thead><tr><th>Kode</th><th>Nama</th><th>Stock</th><th>PCS</th><th>DUS</th><th>PAK</th><th>Promo</th></tr></thead><tbody id="previewBody"><tr><td colspan="7" class="muted">Preview upload akan muncul di sini.</td></tr></tbody></table></div>
       </div>
@@ -117,7 +117,6 @@ grant usage, select on sequence public.price_items_id_seq to authenticated;</pre
   </div>
 
 <script>
-
 const SUPABASE_URL = "https://mitjosxpyeydjdrpuszl.supabase.co";
 const SUPABASE_KEY = "sb_publishable_-wwqDu_np893Rg32XajLEQ_w0-5MvBD";
 
@@ -132,10 +131,8 @@ let sb=null, latestUpload=null, rows=[], previewRows=[], currentProfile=null;
 const $=s=>document.querySelector(s);
 const fmt=n=>n==null||n===''?'-':new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(n)||0);
 const norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'');
-const text=v=>String(v??'').trim();
 const pick=(obj, keys)=>{const map={}; Object.keys(obj).forEach(k=>map[norm(k)]=k); for(const key of keys){const found=map[norm(key)]; if(found!==undefined) return obj[found]} return ''};
 const num=v=>{if(v==null||v==='')return null; const x=String(v).replace(/[^0-9,.-]/g,'').replace(/\./g,'').replace(',','.'); const n=Number(x); return Number.isFinite(n)?n:null};
-
 function initSupabase(){
   if(window.supabase){
     const url = localStorage.getItem('sb_url') || SUPABASE_URL;
@@ -144,111 +141,19 @@ function initSupabase(){
   }
   return sb;
 }
-
-function showTab(name){
-  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
-  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id===name));
-  if(name==='admin') checkAuth();
-}
-
+function showTab(name){document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id===name)); if(name==='admin') checkAuth()}
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
-
-$('#setupBtn').onclick=()=>{
-  $('#supabaseUrl').value=localStorage.getItem('sb_url')||'';
-  $('#supabaseKey').value=localStorage.getItem('sb_key')||'';
-  $('#setupModal').classList.add('open');
-};
+$('#setupBtn').onclick=()=>{$('#supabaseUrl').value=localStorage.getItem('sb_url')||'';$('#supabaseKey').value=localStorage.getItem('sb_key')||'';$('#setupModal').classList.add('open')};
 $('#closeSetup').onclick=()=>$('#setupModal').classList.remove('open');
-$('#saveSetup').onclick=()=>{
-  localStorage.setItem('sb_url',$('#supabaseUrl').value.trim());
-  localStorage.setItem('sb_key',$('#supabaseKey').value.trim());
-  initSupabase();
-  $('#setupModal').classList.remove('open');
-  loadData();
-};
+$('#saveSetup').onclick=()=>{localStorage.setItem('sb_url',$('#supabaseUrl').value.trim());localStorage.setItem('sb_key',$('#supabaseKey').value.trim());initSupabase();$('#setupModal').classList.remove('open');loadData()};
 $('#refreshBtn').onclick=()=>loadData();
-
-async function loadData(){
-  initSupabase();
-  if(!sb){renderRows([]);return alert('Isi Setup Supabase dahulu.');}
-  const {data:up}=await sb.from('price_uploads').select('*').order('uploaded_at',{ascending:false}).limit(1);
-  latestUpload=up&&up[0];
-  if(!latestUpload){rows=[];renderRows([]);return;}
-  const {data,error}=await sb.from('price_items').select('*').eq('upload_id',latestUpload.id).order('name');
-  if(error)return alert(error.message);
-  rows=(data||[]).map(applyDusFallback);
-  renderRows(rows);
-}
-
-function renderRows(data){
-  const q=norm($('#q').value), f=$('#promoFilter').value;
-  let out=data
-    .filter(r=>(!q||norm(`${r.code||''} ${r.name||''}`).includes(q)))
-    .filter(r=>f==='all'||(f==='promo'&&promoCount(r.promos)>0)||(f==='stock'&&Number(r.stock_number)>0));
-
-  $('#mProducts').textContent=data.length;
-  $('#mPromo').textContent=data.filter(r=>promoCount(r.promos)>0).length;
-  $('#mUpdated').textContent=latestUpload?new Date(latestUpload.uploaded_at).toLocaleString('id-ID'):'-';
-  $('#mBy').textContent=latestUpload?.uploaded_by||'-';
-  $('#tbody').innerHTML=out.length?out.map(rowHtml).join(''):'<tr><td colspan="8" class="muted">Data tidak ditemukan.</td></tr>';
-}
-
-function promoHtml(p){
-  let promos = p;
-  if(typeof promos === 'string'){
-    try{ promos = JSON.parse(promos) }catch(_){ promos = {} }
-  }
-  if(!promos||!Object.keys(promos).length)return '-';
-  return Object.entries(promos).map(([k,v])=>`<span class="promo">${esc(k)}: ${fmt(v)}</span>`).join(' ');
-}
-
-function promoCount(p){
-  let promos = p;
-  if(typeof promos === 'string'){
-    try{ promos = JSON.parse(promos) }catch(_){ promos = {} }
-  }
-  return promos && typeof promos === 'object' ? Object.keys(promos).length : 0;
-}
-
-function rowHtml(r){
-  const item = applyDusFallback(r);
-  return `<tr>
-    <td>${esc(item.code||'-')}</td>
-    <td><b>${esc(item.name)}</b></td>
-    <td class="stock">${esc(item.stock_text||'-')}</td>
-    <td class="price">${fmt(item.price_pcs)}</td>
-    <td class="price">${fmt(item.price_dus)}</td>
-    <td class="price">${fmt(item.price_pak)}</td>
-    <td>${promoHtml(item.promos)}</td>
-    <td>${esc(item.note||'')}</td>
-  </tr>`;
-}
-
+async function loadData(){initSupabase(); if(!sb){renderRows([]);return alert('Isi Setup Supabase dahulu.')} const {data:up}=await sb.from('price_uploads').select('*').order('uploaded_at',{ascending:false}).limit(1); latestUpload=up&&up[0]; if(!latestUpload){rows=[];renderRows([]);return} const {data,error}=await sb.from('price_items').select('*').eq('upload_id',latestUpload.id).order('name'); if(error)return alert(error.message); rows=data||[]; renderRows(rows)}
+function renderRows(data){const q=norm($('#q').value), f=$('#promoFilter').value; let out=data.filter(r=>(!q||norm(r.code+' '+r.name).includes(q))).filter(r=>f==='all'||(f==='promo'&&r.promos&&Object.keys(r.promos).length)||(f==='stock'&&Number(r.stock_number)>0)); $('#mProducts').textContent=data.length; $('#mPromo').textContent=data.filter(r=>r.promos&&Object.keys(r.promos).length).length; $('#mUpdated').textContent=latestUpload?new Date(latestUpload.uploaded_at).toLocaleString('id-ID'):'-'; $('#mBy').textContent=latestUpload?.uploaded_by||'-'; $('#tbody').innerHTML=out.length?out.map(rowHtml).join(''):'<tr><td colspan="8" class="muted">Data tidak ditemukan.</td></tr>'}
+function promoHtml(p){if(!p||!Object.keys(p).length)return '-'; return Object.entries(p).map(([k,v])=>`<span class="promo">${esc(k)}: ${fmt(v)}</span>`).join(' ')}
+function rowHtml(r){return `<tr><td>${esc(r.code||'-')}</td><td><b>${esc(r.name)}</b></td><td class="stock">${esc(r.stock_text||'-')}</td><td class="price">${fmt(r.price_pcs)}</td><td class="price">${fmt(r.price_dus)}</td><td class="price">${fmt(r.price_pak)}</td><td>${promoHtml(r.promos)}</td><td>${esc(r.note||'')}</td></tr>`}
 function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
-
-$('#q').oninput=()=>renderRows(rows);
-$('#promoFilter').onchange=()=>renderRows(rows);
-
-$('#exportBtn').onclick=()=>{
-  const data=rows.map(r=>{
-    const item=applyDusFallback(r);
-    return {
-      Kode:item.code,
-      Nama:item.name,
-      Stock:item.stock_text,
-      HargaPCS:item.price_pcs,
-      HargaDUS:item.price_dus,
-      HargaPAK:item.price_pak,
-      Promo:JSON.stringify(item.promos||{}),
-      Keterangan:item.note||''
-    };
-  });
-  const ws=XLSX.utils.json_to_sheet(data);
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'Pricelist Sales');
-  XLSX.writeFile(wb,'pricelist-sales.xlsx');
-};
-
+$('#q').oninput=()=>renderRows(rows); $('#promoFilter').onchange=()=>renderRows(rows);
+$('#exportBtn').onclick=()=>{const data=rows.map(r=>({Kode:r.code,Nama:r.name,Stock:r.stock_text,HargaPCS:r.price_pcs,HargaDUS:r.price_dus,HargaPAK:r.price_pak,Promo:JSON.stringify(r.promos||{}),Keterangan:r.note||''})); const ws=XLSX.utils.json_to_sheet(data); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Pricelist Sales'); XLSX.writeFile(wb,'pricelist-sales.xlsx')};
 async function checkAuth(){
   initSupabase();
   if(!sb)return;
@@ -264,263 +169,12 @@ async function checkAuth(){
     alert('Akun ini bukan Admin, jadi tidak bisa upload data. Tab Sales tetap bisa digunakan.');
   }
 }
-
-$('#loginBtn').onclick=async()=>{
-  initSupabase();
-  if(!sb)return alert('Isi Setup Supabase dahulu.');
-  const {error}=await sb.auth.signInWithPassword({email:$('#email').value,password:$('#password').value});
-  if(error)return alert(error.message);
-  checkAuth();
-};
-
-$('#logoutBtn').onclick=async()=>{
-  await sb.auth.signOut();
-  checkAuth();
-};
-
-$('#previewBtn').onclick=async()=>{
-  const file=$('#file').files[0];
-  if(!file)return alert('Pilih file Excel dahulu.');
-  const buf=await file.arrayBuffer();
-  const wb=XLSX.read(buf,{type:'array'});
-  const sheet=wb.Sheets[wb.SheetNames[0]];
-  previewRows=extractRowsFromSheet(sheet);
-  $('#previewBody').innerHTML=previewRows.length
-    ? previewRows.slice(0,200).map(r=>`<tr><td>${esc(r.code)}</td><td>${esc(r.name)}</td><td>${esc(r.stock_text)}</td><td>${fmt(r.price_pcs)}</td><td>${fmt(r.price_dus)}</td><td>${fmt(r.price_pak)}</td><td>${promoHtml(r.promos)}</td></tr>`).join('')
-    : '<tr><td colspan="7" class="muted">Tidak ada baris valid.</td></tr>';
-  $('#uploadBtn').disabled=!previewRows.length;
-};
-
-function extractRowsFromSheet(sheet){
-  const rawRows = XLSX.utils.sheet_to_json(sheet,{defval:''});
-  const groupedRows = XLSX.utils.sheet_to_json(sheet,{header:1,defval:''});
-  if(looksLikeGroupedPricelist(groupedRows)){
-    return parseGroupedPricelist(groupedRows);
-  }
-  return rawRows.map(normalizeFlatRow).map(applyDusFallback).filter(r=>r.name);
-}
-
-function findGroupedHeader(rows){
-  for(let i=0;i<rows.length;i++){
-    const row=(rows[i]||[]).map(norm);
-    const codeIdx=row.findIndex(v=>v==='kode');
-    const nameIdx=row.findIndex(v=>v==='barang' || v==='namabarang');
-    const packIdx=row.findIndex(v=>v==='kemasan');
-    const stockIdx=row.findIndex(v=>v==='jumlah' || v==='stock' || v==='stok');
-    const sellIdx=row.findIndex(v=>v==='hrgjual' || v==='hargajual' || v==='jual');
-    if(codeIdx>=0 && nameIdx>=0 && packIdx>=0){
-      return { rowIndex:i, codeIdx, nameIdx, packIdx, stockIdx, sellIdx };
-    }
-  }
-  return null;
-}
-
-function looksLikeGroupedPricelist(rows){
-  return !!findGroupedHeader(rows);
-}
-
-function classifyPackage(kemasan, satuan){
-  const kem=norm(kemasan);
-  const sat=norm(satuan);
-  const label=text(kemasan)||text(satuan);
-  const isDusWord = ['dus','zak','bal'].includes(kem) || ['dus','zak','bal'].includes(sat);
-  const isDusVariant =
-    /^(d|ds|z|b)\d+$/.test(kem) ||
-    /^(d|ds|z|b)\d+$/.test(sat) ||
-    kem.includes('dus') || kem.includes('zak') || kem.includes('bal') ||
-    sat.includes('dus') || sat.includes('zak') || sat.includes('bal');
-  if(isDusWord) return { type:'dus', priority:3, promo:false, label, group:'dus' };
-  if(isDusVariant) return { type:'dus', priority:2, promo:true, label, group:'dus' };
-  if(kem.includes('pak') || sat.includes('pak')) return { type:'pak', priority:2, promo:false, label, group:'pak' };
-  if(kem.includes('pcs') || sat.includes('pcs')) return { type:'pcs', priority:2, promo:false, label, group:'pcs' };
-  return { type:'', priority:0, promo:false, label:'', group:'' };
-}
-
-function emptyItem(){
-  return {
-    code:'',
-    name:'',
-    stock_text:'',
-    stock_number:null,
-    price_pcs:null,
-    price_dus:null,
-    price_pak:null,
-    price_zak:null,
-    price_bal:null,
-    promos:{},
-    note:'',
-    _priority_pcs:0,
-    _priority_dus:0,
-    _priority_pak:0,
-    _base_labels:{ pcs:'', dus:'', pak:'' }
-  };
-}
-
-function setPrice(item, pack, price){
-  if(!pack?.type || price==null) return;
-  const key=`price_${pack.type}`;
-  const pkey=`_priority_${pack.type}`;
-  const currentPriority = item[pkey] || 0;
-  if(item[key]==null || pack.priority >= currentPriority){
-    item[key]=price;
-    item[pkey]=pack.priority;
-    item._base_labels[pack.type]=pack.label || '';
-  }
-  if(pack.type==='dus'){
-    const label=norm(pack.label);
-    if(label.includes('zak') || /^z\d+$/.test(label)) item.price_zak = price;
-    if(label.includes('bal') || /^b\d+$/.test(label)) item.price_bal = price;
-  }
-  if(pack.label && pack.promo){
-    item.promos[pack.label]=price;
-  }
-  const baseLabel = item._base_labels[pack.type];
-  if(baseLabel && item.promos[baseLabel] != null){
-    delete item.promos[baseLabel];
-  }
-}
-
-function applyDusFallback(item){
-  if(!item) return item;
-  if(item.price_dus==null){
-    if(item.price_zak!=null) item.price_dus=item.price_zak;
-    else if(item.price_bal!=null) item.price_dus=item.price_bal;
-  }
-  return item;
-}
-
-function parseGroupedPricelist(rows){
-  const header = findGroupedHeader(rows);
-  if(!header) return [];
-
-  const codeIdx = header.codeIdx;
-  const nameIdx = header.nameIdx;
-  const packIdx = header.packIdx;
-  const stockIdx = header.stockIdx >= 0 ? header.stockIdx : -1;
-  const sellIdx = header.sellIdx >= 0 ? header.sellIdx : -1;
-
-  const findSatuanIdx = (row)=>{
-    const start = Math.max(packIdx + 1, 0);
-    const end = sellIdx > start ? sellIdx : Math.min((row?.length||0)-1, start + 6);
-    for(let i=start;i<=end;i++){
-      const v = norm(row?.[i]);
-      if(['pcs','dus','pak','zak','bal','box','lusin','rtg','pail','kg','gr'].includes(v)) return i;
-    }
-    return Math.min(packIdx + 3, (row?.length||0)-1);
-  };
-
-  let satuanIdx = -1;
-  for(let i=header.rowIndex+1;i<Math.min(rows.length, header.rowIndex+12);i++){
-    const candidate = findSatuanIdx(rows[i]||[]);
-    if(candidate > packIdx){
-      satuanIdx = candidate;
-      break;
-    }
-  }
-
-  const items=[];
-  let current=null;
-
-  for(let ri=header.rowIndex+1; ri<rows.length; ri++){
-    const row = rows[ri]||[];
-    const code = text(row?.[codeIdx]);
-    const name = text(row?.[nameIdx]);
-    const kemasan = text(row?.[packIdx]);
-    const satuan = satuanIdx >= 0 ? text(row?.[satuanIdx]) : '';
-    const stock = stockIdx >= 0 ? text(row?.[stockIdx]) : '';
-    const sellPrice = sellIdx >= 0 ? num(row?.[sellIdx]) : null;
-
-    if(code && name){
-      if(current?.name) items.push(applyDusFallback(current));
-      current=emptyItem();
-      current.code=code;
-      current.name=name;
-      current.stock_text=stock||'';
-      current.stock_number=num(stock);
-    }
-    if(!current) continue;
-
-    if(stock && !current.stock_text){
-      current.stock_text=stock;
-      current.stock_number=num(stock);
-    }
-
-    const pack=classifyPackage(kemasan,satuan);
-    setPrice(current, pack, sellPrice);
-  }
-
-  if(current?.name) items.push(applyDusFallback(current));
-  return items.filter(r=>r.name);
-}
-
-function normalizeFlatRow(o){
-  const promos={};
-  Object.keys(o).forEach(k=>{
-    const nk=norm(k);
-    if(/^d?s?\d+$/.test(nk)||/^ds\d+$/.test(nk)||/^z\d+$/.test(nk)||/^b\d+$/.test(nk)||nk.includes('promo')){
-      const v=num(o[k]);
-      if(v!=null) promos[k.trim()]=v;
-    }
-  });
-
-  const item = {
-    code:pick(o,['kode','kode barang','barcode','sku','item code']),
-    name:pick(o,['nama','nama barang','barang','produk','description','nama produk']),
-    stock_text:pick(o,['jumlah','stock','stok','qty','quantity'])||'',
-    stock_number:num(pick(o,['jumlah','stock','stok','qty','quantity'])),
-    price_pcs:num(pick(o,['harga jual pcs','jual pcs','hj pcs','harga pcs','pcs'])),
-    price_dus:num(pick(o,['harga jual dus','jual dus','hj dus','harga dus','dus'])),
-    price_pak:num(pick(o,['harga jual pak','jual pak','hj pak','harga pak','pak'])),
-    price_zak:num(pick(o,['harga jual zak','jual zak','hj zak','harga zak','zak'])),
-    price_bal:num(pick(o,['harga jual bal','jual bal','hj bal','harga bal','bal'])),
-    promos,
-    note:pick(o,['keterangan','note','catatan'])||''
-  };
-
-  if(item.price_dus==null){
-    item.price_dus = item.price_zak ?? item.price_bal ?? null;
-  }
-  return item;
-}
-
-function dbRow(item, uploadId){
-  const clean = applyDusFallback({...item});
-  return {
-    upload_id: uploadId,
-    code: clean.code || '',
-    name: clean.name || '',
-    stock_text: clean.stock_text || '',
-    stock_number: clean.stock_number ?? null,
-    price_pcs: clean.price_pcs ?? null,
-    price_dus: clean.price_dus ?? null,
-    price_pak: clean.price_pak ?? null,
-    promos: clean.promos || {},
-    note: clean.note || ''
-  };
-}
-
-$('#uploadBtn').onclick=async()=>{
-  initSupabase();
-  const {data:u}=await sb.auth.getUser();
-  if(!u?.user)return alert('Login admin dahulu.');
-  const file=$('#file').files[0];
-  const {data:upload,error:e1}=await sb.from('price_uploads').insert({uploaded_by:u.user.email,filename:file.name}).select().single();
-  if(e1)return alert(e1.message);
-  const payload=previewRows.map(r=>dbRow(r, upload.id));
-  for(let i=0;i<payload.length;i+=500){
-    const {error}=await sb.from('price_items').insert(payload.slice(i,i+500));
-    if(error)return alert(error.message);
-  }
-  alert('Upload berhasil. Tab Sales sudah memakai data terbaru. Harga Zak/Bal sekarang otomatis masuk ke kolom Harga DUS.');
-  latestUpload=upload;
-  rows=payload;
-  renderRows(rows);
-  showTab('sales');
-};
-
-initSupabase();
-loadData();
-
+$('#loginBtn').onclick=async()=>{initSupabase(); if(!sb)return alert('Isi Setup Supabase dahulu.'); const {error}=await sb.auth.signInWithPassword({email:$('#email').value,password:$('#password').value}); if(error)return alert(error.message); checkAuth()};
+$('#logoutBtn').onclick=async()=>{await sb.auth.signOut();checkAuth()};
+$('#previewBtn').onclick=async()=>{const file=$('#file').files[0]; if(!file)return alert('Pilih file Excel dahulu.'); const buf=await file.arrayBuffer(); const wb=XLSX.read(buf,{type:'array'}); const sheet=wb.Sheets[wb.SheetNames[0]]; const raw=XLSX.utils.sheet_to_json(sheet,{defval:''}); previewRows=raw.map(normalizeRow).filter(r=>r.name); $('#previewBody').innerHTML=previewRows.length?previewRows.slice(0,200).map(r=>`<tr><td>${esc(r.code)}</td><td>${esc(r.name)}</td><td>${esc(r.stock_text)}</td><td>${fmt(r.price_pcs)}</td><td>${fmt(r.price_dus)}</td><td>${fmt(r.price_pak)}</td><td>${promoHtml(r.promos)}</td></tr>`).join(''):'<tr><td colspan="7" class="muted">Tidak ada baris valid.</td></tr>'; $('#uploadBtn').disabled=!previewRows.length};
+function normalizeRow(o){const promos={}; Object.keys(o).forEach(k=>{const nk=norm(k); if(/^d?s?\d+$/.test(nk)||/^ds\d+$/.test(nk)||nk.includes('promo')){const v=num(o[k]); if(v!=null) promos[k.trim()]=v}}); return {code:pick(o,['kode','kode barang','barcode','sku','item code']), name:pick(o,['nama','nama barang','barang','produk','description','nama produk']), stock_text:pick(o,['jumlah','stock','stok','qty','quantity'])||'', stock_number:num(pick(o,['jumlah','stock','stok','qty','quantity'])), price_pcs:num(pick(o,['harga jual pcs','jual pcs','hj pcs','harga pcs','pcs'])), price_dus:num(pick(o,['harga jual dus','jual dus','hj dus','harga dus','dus'])), price_pak:num(pick(o,['harga jual pak','jual pak','hj pak','harga pak','pak'])), promos, note:pick(o,['keterangan','note','catatan'])||''}}
+$('#uploadBtn').onclick=async()=>{initSupabase(); const {data:u}=await sb.auth.getUser(); if(!u?.user)return alert('Login admin dahulu.'); const file=$('#file').files[0]; const {data:upload,error:e1}=await sb.from('price_uploads').insert({uploaded_by:u.user.email,filename:file.name}).select().single(); if(e1)return alert(e1.message); const payload=previewRows.map(r=>({...r,upload_id:upload.id})); for(let i=0;i<payload.length;i+=500){const {error}=await sb.from('price_items').insert(payload.slice(i,i+500)); if(error)return alert(error.message)} alert('Upload berhasil. Tab Sales sudah memakai data terbaru.'); latestUpload=upload; rows=payload; renderRows(rows); showTab('sales')};
+initSupabase(); loadData();
 </script>
 </body>
 </html>
