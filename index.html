@@ -10,9 +10,9 @@
     :root{--bg:#f6f7fb;--card:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;--pri:#2563eb;--ok:#16a34a;--warn:#f59e0b;--bad:#dc2626;--shadow:0 10px 30px rgba(15,23,42,.08)}
     *{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
     header{background:linear-gradient(135deg,#1d4ed8,#0f172a);color:white;padding:28px 20px}.wrap{max-width:1180px;margin:auto}h1{margin:0;font-size:28px}.sub{margin-top:8px;opacity:.85}
-    .topbar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:18px}.tabs{display:flex;gap:8px}.tab,.btn{border:0;border-radius:12px;padding:11px 16px;font-weight:700;cursor:pointer}.tab{background:rgba(255,255,255,.16);color:white}.tab.active{background:white;color:#1d4ed8}.btn{background:var(--pri);color:white}.btn.secondary{background:#eef2ff;color:#1d4ed8}.btn.danger{background:var(--bad)}.btn.ok{background:var(--ok)}.btn:disabled{opacity:.55;cursor:not-allowed}
-    main{padding:22px 20px 50px}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow)}.metric{font-size:24px;font-weight:800;margin-top:8px}.label{color:var(--muted);font-size:13px}.panel{display:none}.panel.active{display:block}.toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:14px}.search{display:flex;gap:8px;flex-wrap:wrap}.input,select{border:1px solid var(--line);border-radius:12px;padding:11px 12px;background:white;min-width:220px}.tablebox{overflow:auto;background:white;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}table{border-collapse:collapse;width:100%;min-width:980px}th,td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{position:sticky;top:0;background:#f9fafb;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#374151}td{font-size:14px}.price{font-weight:800}.promo{display:inline-block;background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;border-radius:999px;padding:4px 8px;font-weight:700;margin:2px}.promo-stack{display:flex;flex-direction:column;align-items:flex-start;gap:6px}.stock{font-weight:800;color:#065f46}.muted{color:var(--muted)}.hide{display:none!important}.notice{border-left:4px solid var(--pri);background:#eff6ff;padding:12px 14px;border-radius:12px;margin-bottom:14px}.drop{border:2px dashed #93c5fd;background:#eff6ff;border-radius:18px;padding:24px;text-align:center;margin-bottom:16px}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:18px}.modal.open{display:flex}.modal .card{max-width:720px;width:100%}pre{white-space:pre-wrap;background:#0f172a;color:#e5e7eb;border-radius:14px;padding:14px;overflow:auto;font-size:12px}.small{font-size:12px;color:var(--muted)}.welcome{margin-top:10px;display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:8px 12px;font-weight:700}.welcome.hide{display:none}
-    @media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}.input{min-width:100%}.search{width:100%}.search>*{flex:1}.toolbar{align-items:stretch}.tab,.btn{padding:10px 12px}h1{font-size:23px}}
+    .topbar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:18px}.tabs{display:flex;gap:8px}.tab,.btn{border:0;border-radius:12px;padding:11px 16px;font-weight:700;cursor:pointer}.tab{background:rgba(255,255,255,.16);color:white}.tab.active{background:white;color:#1d4ed8}.btn{background:var(--pri);color:white}.btn.secondary{background:#eef2ff;color:#1d4ed8}.btn.danger{background:var(--bad)}.btn.ok{background:var(--ok)}.btn.warn{background:var(--warn)}.btn:disabled{opacity:.55;cursor:not-allowed}
+    main{padding:22px 20px 50px}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow)}.metric{font-size:24px;font-weight:800;margin-top:8px}.label{color:var(--muted);font-size:13px}.panel{display:none}.panel.active{display:block}.toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:14px}.search{display:flex;gap:8px;flex-wrap:wrap}.input,select,textarea{border:1px solid var(--line);border-radius:12px;padding:11px 12px;background:white;min-width:220px}.tablebox{overflow:auto;background:white;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}table{border-collapse:collapse;width:100%;min-width:980px}th,td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{position:sticky;top:0;background:#f9fafb;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#374151}td{font-size:14px}.price{font-weight:800}.promo{display:inline-block;background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;border-radius:999px;padding:4px 8px;font-weight:700;margin:2px}.promo-stack{display:flex;flex-direction:column;align-items:flex-start;gap:6px}.stock{font-weight:800;color:#065f46}.muted{color:var(--muted)}.hide{display:none!important}.notice{border-left:4px solid var(--pri);background:#eff6ff;padding:12px 14px;border-radius:12px;margin-bottom:14px}.drop{border:2px dashed #93c5fd;background:#eff6ff;border-radius:18px;padding:24px;text-align:center;margin-bottom:16px}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.small{font-size:12px;color:var(--muted)}.welcome{margin-top:10px;display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:8px 12px;font-weight:700}.welcome.hide{display:none}.cols-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.status-pill{display:inline-flex;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700}.status-pending{background:#fef3c7;color:#92400e}.status-approved{background:#dcfce7;color:#166534}.status-rejected{background:#fee2e2;color:#991b1b}
+    @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.cols-2{grid-template-columns:1fr}.input,textarea{min-width:100%}.search{width:100%}.search>*{flex:1}.toolbar{align-items:stretch}.tab,.btn{padding:10px 12px}h1{font-size:23px}}
   </style>
 </head>
 <body>
@@ -27,8 +27,8 @@
           <button class="tab" data-tab="admin">Admin</button>
         </div>
         <div class="row">
-          <button class="btn secondary" id="setupBtn">Setup Supabase</button>
           <button class="btn secondary" id="refreshBtn">Refresh Data</button>
+          <button class="btn secondary hide" id="logoutTopBtn">Logout</button>
         </div>
       </div>
     </div>
@@ -36,100 +36,80 @@
 
   <main class="wrap">
     <section id="sales" class="panel active">
-      <div class="grid">
-        <div class="card"><div class="label">Total Produk</div><div class="metric" id="mProducts">0</div></div>
-        <div class="card"><div class="label">Produk Ada Promo</div><div class="metric" id="mPromo">0</div></div>
-        <div class="card"><div class="label">Update Terakhir</div><div class="metric" id="mUpdated">-</div></div>
-        <div class="card"><div class="label">Upload Oleh</div><div class="metric" id="mBy">-</div></div>
-      </div>
-      <div class="toolbar">
-        <div class="search">
-          <input class="input" id="q" placeholder="Cari kode / nama barang..." />
-          <select id="promoFilter"><option value="all">Semua produk</option><option value="promo">Hanya promo</option><option value="stock">Stock tersedia</option></select>
+      <div class="notice" id="salesGuard">Silakan login terlebih dahulu untuk melihat pricelist.</div>
+      <div id="salesContent" class="hide">
+        <div class="grid">
+          <div class="card"><div class="label">Total Produk</div><div class="metric" id="mProducts">0</div></div>
+          <div class="card"><div class="label">Produk Ada Promo</div><div class="metric" id="mPromo">0</div></div>
+          <div class="card"><div class="label">Update Terakhir</div><div class="metric" id="mUpdated">-</div></div>
+          <div class="card"><div class="label">Upload Oleh</div><div class="metric" id="mBy">-</div></div>
         </div>
-        <button class="btn ok hide" id="exportBtn">Export Tampilan</button>
+        <div class="toolbar">
+          <div class="search">
+            <input class="input" id="q" placeholder="Cari kode / nama barang..." />
+            <select id="promoFilter"><option value="all">Semua produk</option><option value="promo">Hanya promo</option><option value="stock">Stock tersedia</option></select>
+          </div>
+          <button class="btn ok hide" id="exportBtn">Export Tampilan</button>
+        </div>
+        <div class="tablebox"><table><thead><tr><th>Kode</th><th>Nama Barang</th><th>Stock Gudang</th><th>Harga PCS</th><th>Harga DUS</th><th>Harga PAK</th><th>Promo</th><th>Keterangan</th></tr></thead><tbody id="tbody"><tr><td colspan="8" class="muted">Belum ada data.</td></tr></tbody></table></div>
       </div>
-      <div class="tablebox"><table><thead><tr><th>Kode</th><th>Nama Barang</th><th>Stock Gudang</th><th>Harga PCS</th><th>Harga DUS</th><th>Harga PAK</th><th>Promo</th><th>Keterangan</th></tr></thead><tbody id="tbody"><tr><td colspan="8" class="muted">Belum ada data.</td></tr></tbody></table></div>
     </section>
 
     <section id="admin" class="panel">
-      <div class="notice">Admin login memakai Supabase Auth. Harga beli otomatis dibuang dan tidak ditampilkan di tab Sales.</div>
-      <div id="loginBox" class="card">
-        <h2>Login Admin</h2>
-        <div class="row"><input class="input" id="email" type="email" placeholder="Email admin" /><input class="input" id="password" type="password" placeholder="Password" /><button class="btn" id="loginBtn">Login</button></div>
-        <p class="small">Buat user di Supabase Authentication. Hak akses Admin/Sales diatur dari UUID user pada variabel USER_ROLES di kode.</p>
-      </div>
-      <div id="adminBox" class="hide">
+      <div id="authBox" class="cols-2">
         <div class="card">
-          <div class="toolbar"><div><h2>Upload Pricelist Terbaru</h2><div class="small" id="adminUser"></div></div><button class="btn danger" id="logoutBtn">Logout</button></div>
+          <h2>Login</h2>
+          <div class="row">
+            <input class="input" id="loginPhone" placeholder="Nomor HP, contoh 08119892908" />
+            <input class="input" id="loginPassword" type="password" placeholder="Password" />
+            <button class="btn" id="loginBtn">Login</button>
+          </div>
+          <p class="small">Login menggunakan nomor HP dan password.</p>
+        </div>
+        <div class="card">
+          <h2>Registrasi User Baru</h2>
+          <div class="row">
+            <input class="input" id="regName" placeholder="Nama lengkap" />
+            <input class="input" id="regPhone" placeholder="Nomor HP, contoh 08119892908" />
+            <input class="input" id="regPassword" type="password" placeholder="Password minimal 8 karakter" />
+            <button class="btn ok" id="registerBtn">Kirim Registrasi</button>
+          </div>
+          <p class="small">User baru masuk ke pending approval. Admin perlu approve terlebih dahulu sebelum bisa login.</p>
+        </div>
+      </div>
+
+      <div id="adminShell" class="hide">
+        <div class="card" style="margin-bottom:16px">
+          <div class="toolbar">
+            <div><h2>Panel Admin</h2><div class="small" id="adminUser"></div></div>
+            <div class="row"><button class="btn secondary" id="reloadPendingBtn">Refresh Pending</button><button class="btn danger" id="logoutBtn">Logout</button></div>
+          </div>
+        </div>
+
+        <div id="pendingCard" class="card" style="margin-bottom:16px">
+          <div class="toolbar"><div><h2>Pending Registrations</h2><div class="small">Approve atau reject user baru.</div></div></div>
+          <div class="tablebox"><table><thead><tr><th>Nama</th><th>Phone</th><th>Role</th><th>Status</th><th>Diajukan</th><th>Aksi</th></tr></thead><tbody id="pendingBody"><tr><td colspan="6" class="muted">Belum ada pending registration.</td></tr></tbody></table></div>
+        </div>
+
+        <div class="card">
+          <div class="toolbar"><div><h2>Upload Pricelist Terbaru</h2><div class="small">Hanya admin yang bisa upload dan export.</div></div></div>
           <div class="drop"><input type="file" id="file" accept=".xlsx,.xls,.csv" /><p>Pilih file Excel dari sistem. Sheet pertama akan dibaca.</p></div>
           <div class="row"><button class="btn" id="previewBtn">Preview</button><button class="btn ok" id="uploadBtn" disabled>Upload ke Supabase</button></div>
-          <p class="small">Kolom yang dikenali otomatis: kode, nama barang, jumlah/stock, harga jual pcs, harga jual dus, harga jual pak, harga jual zak, harga jual bal, dan promo. Untuk format raw report bertingkat, kemasan Dus / Zak / Bal otomatis digabung ke kolom Harga DUS. Kolom harga beli tidak akan disimpan.</p>
+          <p class="small">Kolom yang dikenali otomatis: kode, nama barang, jumlah/stock, harga jual pcs, harga jual dus, harga jual pak, harga jual zak, harga jual bal, dan promo. Untuk format raw report bertingkat, kemasan Dus / Zak / Bal otomatis digabung ke kolom Harga DUS.</p>
         </div>
         <div class="tablebox" style="margin-top:16px"><table><thead><tr><th>Kode</th><th>Nama</th><th>Stock</th><th>PCS</th><th>DUS</th><th>PAK</th><th>Promo</th></tr></thead><tbody id="previewBody"><tr><td colspan="7" class="muted">Preview upload akan muncul di sini.</td></tr></tbody></table></div>
       </div>
     </section>
   </main>
 
-  <div class="modal" id="setupModal">
-    <div class="card">
-      <div class="toolbar"><h2>Setup Supabase</h2><button class="btn secondary" id="closeSetup">Tutup</button></div>
-      <p>Supabase sudah diisi dari kode. Form ini tetap tersedia bila nanti project URL atau publishable key berubah.</p>
-      <div class="row"><input class="input" id="supabaseUrl" placeholder="https://xxxx.supabase.co" /><input class="input" id="supabaseKey" placeholder="anon public key" /><button class="btn" id="saveSetup">Simpan</button></div>
-      <h3>SQL untuk Supabase</h3>
-      <pre id="sqlText">create table if not exists public.price_uploads (
-  id uuid primary key default gen_random_uuid(),
-  uploaded_at timestamptz not null default now(),
-  uploaded_by text,
-  filename text
-);
-
-create table if not exists public.price_items (
-  id bigserial primary key,
-  upload_id uuid references public.price_uploads(id) on delete cascade,
-  code text,
-  name text not null,
-  stock_text text,
-  stock_number numeric,
-  price_pcs numeric,
-  price_dus numeric,
-  price_pak numeric,
-  promos jsonb default '{}'::jsonb,
-  note text,
-  created_at timestamptz not null default now()
-);
-
-alter table public.price_uploads enable row level security;
-alter table public.price_items enable row level security;
-
-create policy "public read uploads" on public.price_uploads for select using (true);
-create policy "public read items" on public.price_items for select using (true);
-create policy "admin insert uploads" on public.price_uploads for insert to authenticated with check (true);
-create policy "admin insert items" on public.price_items for insert to authenticated with check (true);
-create policy "admin delete uploads" on public.price_uploads for delete to authenticated using (true);
-create policy "admin delete items" on public.price_items for delete to authenticated using (true);
-
-grant select on public.price_uploads to anon;
-grant select on public.price_items to anon;
-grant select, insert, delete on public.price_uploads to authenticated;
-grant select, insert, delete on public.price_items to authenticated;
-grant usage, select on sequence public.price_items_id_seq to authenticated;</pre>
-    </div>
-  </div>
-
 <script>
-
 const SUPABASE_URL = "https://mitjosxpyeydjdrpuszl.supabase.co";
 const SUPABASE_KEY = "sb_publishable_-wwqDu_np893Rg32XajLEQ_w0-5MvBD";
+const REGISTER_FUNCTION = `${SUPABASE_URL}/functions/v1/register-request`;
+const APPROVE_FUNCTION = `${SUPABASE_URL}/functions/v1/approve-registration`;
 
-// Isi UUID user Supabase Auth sesuai akun masing-masing.
-// Catatan: contoh yang diberikan Admin dan Sales 01 masih sama, jadi aksesnya akan dianggap Admin.
-const USER_ROLES = {
-  "939e3199-13c3-4d02-91d8-ffea5f5af023": { name: "Admin", role: "admin" },
-  "95ff6198-343c-45ea-bda9-17d1b106a341": { name: "Denny", role: "sales" }
-};
+let sb=null, latestUpload=null, rows=[], previewRows=[], currentUser=null, currentRole=null, currentName='';
 
-let sb=null, latestUpload=null, rows=[], previewRows=[], currentProfile=null;
 const $=s=>document.querySelector(s);
 const fmt=n=>n==null||n===''?'-':new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(n)||0);
 const norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'');
@@ -137,75 +117,93 @@ const text=v=>String(v??'').trim();
 const pick=(obj, keys)=>{const map={}; Object.keys(obj).forEach(k=>map[norm(k)]=k); for(const key of keys){const found=map[norm(key)]; if(found!==undefined) return obj[found]} return ''};
 const num=v=>{if(v==null||v==='')return null; const x=String(v).replace(/[^0-9,.-]/g,'').replace(/\./g,'').replace(',','.'); const n=Number(x); return Number.isFinite(n)?n:null};
 
+function normalizePhone(raw){
+  const digits = String(raw||'').replace(/\D/g,'');
+  if(!digits) return '';
+  if(digits.startsWith('62')) return `+${digits}`;
+  if(digits.startsWith('0')) return `+62${digits.slice(1)}`;
+  if(digits.startsWith('8')) return `+62${digits}`;
+  if(String(raw||'').startsWith('+')) return String(raw).trim();
+  return `+${digits}`;
+}
+
 function initSupabase(){
-  if(window.supabase){
-    const url = localStorage.getItem('sb_url') || SUPABASE_URL;
-    const key = localStorage.getItem('sb_key') || SUPABASE_KEY;
-    sb = window.supabase.createClient(url,key);
+  if(window.supabase && !sb){
+    sb = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
   }
   return sb;
 }
 
-
-function updateWelcome(){
-  const el = $('#welcomeUser');
-  if(!el) return;
-  if(currentProfile?.name){
-    const roleLabel = currentProfile.role === 'admin' ? 'Admin' : 'Sales';
-    el.textContent = `Welcome ${currentProfile.name} (${roleLabel})`;
-    el.classList.remove('hide');
-  }else{
-    el.textContent = '';
-    el.classList.add('hide');
-  }
-}
-
-
-function updateExportAccess(){
-  const btn = $('#exportBtn');
-  if(!btn) return;
-  const isAdmin = currentProfile?.role === 'admin';
-  btn.classList.toggle('hide', !isAdmin);
-  btn.disabled = !isAdmin;
-}
+function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 
 function showTab(name){
   document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
   document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id===name));
-  if(name==='admin') checkAuth();
 }
-
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
 
-$('#setupBtn').onclick=()=>{
-  $('#supabaseUrl').value=localStorage.getItem('sb_url')||'';
-  $('#supabaseKey').value=localStorage.getItem('sb_key')||'';
-  $('#setupModal').classList.add('open');
-};
-$('#closeSetup').onclick=()=>$('#setupModal').classList.remove('open');
-$('#saveSetup').onclick=()=>{
-  localStorage.setItem('sb_url',$('#supabaseUrl').value.trim());
-  localStorage.setItem('sb_key',$('#supabaseKey').value.trim());
+function updateWelcome(){
+  const el = $('#welcomeUser');
+  if(currentUser){
+    const roleLabel = currentRole === 'admin' ? 'Admin' : 'Sales';
+    const display = currentName || currentUser.phone || currentUser.email || 'User';
+    el.textContent = `Welcome ${display} (${roleLabel})`;
+    el.classList.remove('hide');
+    $('#logoutTopBtn').classList.remove('hide');
+  } else {
+    el.textContent='';
+    el.classList.add('hide');
+    $('#logoutTopBtn').classList.add('hide');
+  }
+}
+
+function applyAuthUI(){
+  const loggedIn = !!currentUser;
+  const isAdmin = currentRole === 'admin';
+
+  $('#salesGuard').classList.toggle('hide', loggedIn);
+  $('#salesContent').classList.toggle('hide', !loggedIn);
+  $('#exportBtn').classList.toggle('hide', !isAdmin);
+
+  $('#authBox').classList.toggle('hide', isAdmin);
+  $('#adminShell').classList.toggle('hide', !isAdmin);
+  $('#pendingCard').classList.toggle('hide', !isAdmin);
+  $('#adminUser').textContent = loggedIn ? `Login sebagai ${currentName || currentUser.phone || currentUser.email} (${currentRole || 'sales'})` : '';
+  updateWelcome();
+}
+
+async function loadProfile(){
   initSupabase();
-  $('#setupModal').classList.remove('open');
-  loadData();
-};
-$('#refreshBtn').onclick=()=>loadData();
+  const {data} = await sb.auth.getUser();
+  currentUser = data?.user || null;
+  currentRole = null;
+  currentName = '';
+  if(currentUser){
+    const {data: roleRow} = await sb.from('user_roles').select('role,display_name,phone').eq('user_id', currentUser.id).maybeSingle();
+    currentRole = roleRow?.role || 'sales';
+    currentName = roleRow?.display_name || currentUser.user_metadata?.full_name || currentUser.phone || '';
+  }
+  applyAuthUI();
+}
 
 async function loadData(){
   initSupabase();
-  if(!sb){renderRows([]);return alert('Isi Setup Supabase dahulu.');}
-  const {data:up}=await sb.from('price_uploads').select('*').order('uploaded_at',{ascending:false}).limit(1);
+  if(!currentUser){
+    rows=[]; latestUpload=null; renderRows([]);
+    return;
+  }
+  const {data:up, error:upErr}=await sb.from('price_uploads').select('*').order('uploaded_at',{ascending:false}).limit(1);
+  if(upErr){ console.error(upErr); renderRows([]); return; }
   latestUpload=up&&up[0];
   if(!latestUpload){rows=[];renderRows([]);return;}
   const {data,error}=await sb.from('price_items').select('*').eq('upload_id',latestUpload.id).order('name');
-  if(error)return alert(error.message);
+  if(error){ console.error(error); return alert(error.message); }
   rows=(data||[]).map(applyDusFallback).map(normalizePromoOrder);
   renderRows(rows);
 }
 
 function renderRows(data){
-  const q=norm($('#q').value), f=$('#promoFilter').value;
+  const q=norm($('#q')?.value||''), f=$('#promoFilter')?.value||'all';
   let out=data
     .filter(r=>(!q||norm(`${r.code||''} ${r.name||''}`).includes(q)))
     .filter(r=>f==='all'||(f==='promo'&&promoCount(r.promos)>0)||(f==='stock'&&Number(r.stock_number)>0));
@@ -213,7 +211,7 @@ function renderRows(data){
   $('#mProducts').textContent=data.length;
   $('#mPromo').textContent=data.filter(r=>promoCount(r.promos)>0).length;
   $('#mUpdated').textContent=latestUpload?new Date(latestUpload.uploaded_at).toLocaleString('id-ID'):'-';
-  $('#mBy').textContent=latestUpload?.uploaded_by||'-';
+  $('#mBy').textContent=currentRole==='admin' ? (latestUpload?.uploaded_by||'-') : '-';
   $('#tbody').innerHTML=out.length?out.map(rowHtml).join(''):'<tr><td colspan="8" class="muted">Data tidak ditemukan.</td></tr>';
 }
 
@@ -231,9 +229,7 @@ function formatPromoLabel(label){
   return `${prefixMap[m[1].toLowerCase()] || m[1]}${Number(m[2])}`;
 }
 
-function promoCount(p){
-  return promoSortEntries(p).length;
-}
+function promoCount(p){ return promoSortEntries(p).length; }
 
 function rowHtml(r){
   const item = applyDusFallback(r);
@@ -249,17 +245,18 @@ function rowHtml(r){
   </tr>`;
 }
 
-function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
-
 $('#q').oninput=()=>renderRows(rows);
 $('#promoFilter').onchange=()=>renderRows(rows);
+$('#refreshBtn').onclick=async()=>{ await loadProfile(); await loadData(); if(currentRole==='admin') await loadPendingRegistrations(); };
 
 $('#exportBtn').onclick=()=>{
-  if(currentProfile?.role !== 'admin'){
-    alert('Export data hanya untuk Admin.');
-    return;
-  }
-  const data=rows.map(r=>{
+  if(currentRole!=='admin') return alert('Hanya admin yang boleh export data.');
+  const q=norm($('#q').value), f=$('#promoFilter').value;
+  const filtered=rows
+    .filter(r=>(!q||norm(`${r.code||''} ${r.name||''}`).includes(q)))
+    .filter(r=>f==='all'||(f==='promo'&&promoCount(r.promos)>0)||(f==='stock'&&Number(r.stock_number)>0));
+
+  const data=filtered.map(r=>{
     const item=applyDusFallback(r);
     return {
       Kode:item.code,
@@ -278,36 +275,102 @@ $('#exportBtn').onclick=()=>{
   XLSX.writeFile(wb,'pricelist-sales.xlsx');
 };
 
-async function checkAuth(){
-  initSupabase();
-  if(!sb)return;
-  const {data}=await sb.auth.getUser();
-  const user=data?.user;
-  currentProfile = user ? (USER_ROLES[user.id] || { name:user.email, role:'sales' }) : null;
-  const isAdmin = currentProfile?.role === 'admin';
-  $('#loginBox').classList.toggle('hide',!!user && isAdmin);
-  $('#adminBox').classList.toggle('hide',!isAdmin);
-  $('#adminUser').textContent=user?`Login sebagai ${currentProfile.name} (${currentProfile.role})`:'';
-  updateWelcome();
-  updateExportAccess();
-  if(user && !isAdmin){
-    $('#loginBox').classList.remove('hide');
-  }
-}
-
 $('#loginBtn').onclick=async()=>{
   initSupabase();
-  if(!sb)return alert('Isi Setup Supabase dahulu.');
-  const {error}=await sb.auth.signInWithPassword({email:$('#email').value,password:$('#password').value});
-  if(error)return alert(error.message);
-  checkAuth();
+  const phone = normalizePhone($('#loginPhone').value);
+  const password = $('#loginPassword').value;
+  if(!phone || !password) return alert('Nomor HP dan password wajib diisi.');
+  const {error} = await sb.auth.signInWithPassword({ phone, password });
+  if(error) return alert(error.message);
+  $('#loginPhone').value=''; $('#loginPassword').value='';
+  await loadProfile();
+  await loadData();
+  if(currentRole==='admin') await loadPendingRegistrations();
+  showTab('sales');
 };
 
-$('#logoutBtn').onclick=async()=>{
+$('#registerBtn').onclick=async()=>{
+  const payload = {
+    full_name: $('#regName').value.trim(),
+    phone: $('#regPhone').value.trim(),
+    password: $('#regPassword').value
+  };
+  if(!payload.full_name || !payload.phone || !payload.password) return alert('Nama, nomor HP, dan password wajib diisi.');
+  const res = await fetch(REGISTER_FUNCTION, {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`
+    },
+    body: JSON.stringify(payload)
+  });
+  const json = await res.json().catch(()=>({error:'Gagal membaca response'}));
+  if(!res.ok) return alert(json.error || 'Registrasi gagal.');
+  alert(json.message || 'Registrasi berhasil dikirim.');
+  $('#regName').value=''; $('#regPhone').value=''; $('#regPassword').value='';
+};
+
+async function logout(){
+  if(!sb) return;
   await sb.auth.signOut();
-  checkAuth();
-};
+  currentUser=null; currentRole=null; currentName='';
+  applyAuthUI();
+  rows=[]; latestUpload=null; renderRows([]);
+  $('#pendingBody').innerHTML='<tr><td colspan="6" class="muted">Belum ada pending registration.</td></tr>';
+}
+$('#logoutBtn').onclick=logout;
+$('#logoutTopBtn').onclick=logout;
 
+async function loadPendingRegistrations(){
+  if(currentRole!=='admin') return;
+  const {data,error} = await sb.from('pending_registrations').select('id,full_name,phone,requested_role,status,requested_at').order('requested_at',{ascending:false});
+  if(error){ console.error(error); return; }
+  const pending = (data||[]);
+  $('#pendingBody').innerHTML = pending.length ? pending.map(p=>{
+    const statusClass = `status-${p.status}`;
+    const pendingAction = p.status==='pending'
+      ? `<div class="row">
+          <button class="btn ok" onclick="approveRegistration('${p.id}','approve')">Approve</button>
+          <button class="btn danger" onclick="approveRegistration('${p.id}','reject')">Reject</button>
+        </div>`
+      : '-';
+    return `<tr>
+      <td>${esc(p.full_name)}</td>
+      <td>${esc(p.phone)}</td>
+      <td>${esc(p.requested_role)}</td>
+      <td><span class="status-pill ${statusClass}">${esc(p.status)}</span></td>
+      <td>${new Date(p.requested_at).toLocaleString('id-ID')}</td>
+      <td>${pendingAction}</td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="6" class="muted">Belum ada pending registration.</td></tr>';
+}
+$('#reloadPendingBtn').onclick=loadPendingRegistrations;
+
+window.approveRegistration = async (registrationId, decision) => {
+  if(currentRole!=='admin') return alert('Hanya admin yang bisa approve.');
+  const note = prompt(decision==='approve' ? 'Catatan approval (opsional):' : 'Alasan reject (opsional):') || '';
+  const {data} = await sb.auth.getSession();
+  const token = data?.session?.access_token;
+  if(!token) return alert('Session admin tidak ditemukan.');
+  const res = await fetch(APPROVE_FUNCTION,{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({
+      registration_id: registrationId,
+      decision,
+      review_note: note
+    })
+  });
+  const json = await res.json().catch(()=>({error:'Gagal membaca response'}));
+  if(!res.ok) return alert(json.error || 'Approval gagal.');
+  alert(json.message || 'Berhasil.');
+  await loadPendingRegistrations();
+};
 
 async function parseFileToRows(file){
   if(!file) return [];
@@ -351,6 +414,7 @@ function normalizePromoOrder(item){
 }
 
 $('#previewBtn').onclick=async()=>{
+  if(currentRole!=='admin') return alert('Hanya admin yang bisa preview upload.');
   const file=$('#file').files[0];
   if(!file)return alert('Pilih file Excel dahulu.');
   previewRows=await parseFileToRows(file);
@@ -384,9 +448,7 @@ function findGroupedHeader(rows){
   return null;
 }
 
-function looksLikeGroupedPricelist(rows){
-  return !!findGroupedHeader(rows);
-}
+function looksLikeGroupedPricelist(rows){ return !!findGroupedHeader(rows); }
 
 function classifyPackage(kemasan, satuan){
   const kem=norm(kemasan);
@@ -404,7 +466,6 @@ function classifyPackage(kemasan, satuan){
   if(kem.includes('pcs') || sat.includes('pcs')) return { type:'pcs', priority:2, promo:false, label, group:'pcs' };
   return { type:'', priority:0, promo:false, label:'', group:'' };
 }
-
 
 function findStrictPromoLabel(row, ignoreIdxs=[]){
   const skip = new Set((ignoreIdxs||[]).filter(i=>Number.isInteger(i) && i>=0));
@@ -451,9 +512,7 @@ function setPrice(item, pack, price){
 
   if(pack.type==='dus' && pack.promo){
     item._fallback_variant_dus = price;
-    if(labelRaw){
-      item.promos[labelRaw]=price;
-    }
+    if(labelRaw){ item.promos[labelRaw]=price; }
     if(/^z\d+$/.test(label)) item.price_zak = price;
     if(/^b\d+$/.test(label)) item.price_bal = price;
     return;
@@ -464,9 +523,7 @@ function setPrice(item, pack, price){
       item[key]=price;
       item[pkey]=pack.priority;
     }
-    if(labelRaw){
-      item.promos[labelRaw]=price;
-    }
+    if(labelRaw){ item.promos[labelRaw]=price; }
     return;
   }
 
@@ -477,9 +534,7 @@ function setPrice(item, pack, price){
   }
 
   const baseLabel = item._base_labels[pack.type];
-  if(baseLabel && item.promos[baseLabel] != null){
-    delete item.promos[baseLabel];
-  }
+  if(baseLabel && item.promos[baseLabel] != null){ delete item.promos[baseLabel]; }
 
   if(pack.type==='dus'){
     if(label.includes('zak')) item.price_zak = price;
@@ -500,7 +555,6 @@ function applyDusFallback(item){
 function parseGroupedPricelist(rows){
   const header = findGroupedHeader(rows);
   if(!header) return [];
-
   const codeIdx = header.codeIdx;
   const nameIdx = header.nameIdx;
   const packIdx = header.packIdx;
@@ -520,15 +574,10 @@ function parseGroupedPricelist(rows){
   let satuanIdx = -1;
   for(let i=header.rowIndex+1;i<Math.min(rows.length, header.rowIndex+12);i++){
     const candidate = findSatuanIdx(rows[i]||[]);
-    if(candidate > packIdx){
-      satuanIdx = candidate;
-      break;
-    }
+    if(candidate > packIdx){ satuanIdx = candidate; break; }
   }
 
-  const items=[];
-  let current=null;
-
+  const items=[]; let current=null;
   for(let ri=header.rowIndex+1; ri<rows.length; ri++){
     const row = rows[ri]||[];
     const code = text(row?.[codeIdx]);
@@ -588,9 +637,7 @@ function normalizeFlatRow(o){
     note:pick(o,['keterangan','note','catatan'])||''
   };
 
-  if(item.price_dus==null){
-    item.price_dus = item.price_zak ?? item.price_bal ?? null;
-  }
+  if(item.price_dus==null){ item.price_dus = item.price_zak ?? item.price_bal ?? null; }
   return item;
 }
 
@@ -611,6 +658,7 @@ function dbRow(item, uploadId){
 }
 
 $('#uploadBtn').onclick=async()=>{
+  if(currentRole!=='admin') return alert('Hanya admin yang bisa upload.');
   initSupabase();
   const {data:u}=await sb.auth.getUser();
   if(!u?.user)return alert('Login admin dahulu.');
@@ -619,25 +667,26 @@ $('#uploadBtn').onclick=async()=>{
   const freshRows = await parseFileToRows(file);
   if(!freshRows.length)return alert('File Excel terbaca kosong / tidak valid.');
   previewRows = freshRows;
-  const {data:upload,error:e1}=await sb.from('price_uploads').insert({uploaded_by:u.user.email,filename:file.name}).select().single();
+  const {data:upload,error:e1}=await sb.from('price_uploads').insert({uploaded_by:u.user.phone || u.user.email || currentName,filename:file.name}).select().single();
   if(e1)return alert(e1.message);
   const payload=freshRows.map(r=>dbRow(r, upload.id));
   for(let i=0;i<payload.length;i+=500){
     const {error}=await sb.from('price_items').insert(payload.slice(i,i+500));
     if(error)return alert(error.message);
   }
-  alert('Upload berhasil. File di-parse ulang saat upload, jadi promo D/DS/Z/B mengikuti isi Excel terbaru.');
+  alert('Upload berhasil.');
   latestUpload=upload;
   rows=payload.map(normalizePromoOrder);
   renderRows(rows);
   showTab('sales');
 };
 
-initSupabase();
-checkAuth();
-updateExportAccess();
-loadData();
-
+(async function boot(){
+  initSupabase();
+  await loadProfile();
+  await loadData();
+  if(currentRole==='admin') await loadPendingRegistrations();
+})();
 </script>
 </body>
 </html>
