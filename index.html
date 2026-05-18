@@ -184,18 +184,30 @@ function renderRows(data){
   const q=norm($('#q').value), f=$('#promoFilter').value;
   let out=data
     .filter(r=>(!q||norm(`${r.code||''} ${r.name||''}`).includes(q)))
-    .filter(r=>f==='all'||(f==='promo'&&r.promos&&Object.keys(r.promos).length)||(f==='stock'&&Number(r.stock_number)>0));
+    .filter(r=>f==='all'||(f==='promo'&&promoCount(r.promos)>0)||(f==='stock'&&Number(r.stock_number)>0));
 
   $('#mProducts').textContent=data.length;
-  $('#mPromo').textContent=data.filter(r=>r.promos&&Object.keys(r.promos).length).length;
+  $('#mPromo').textContent=data.filter(r=>promoCount(r.promos)>0).length;
   $('#mUpdated').textContent=latestUpload?new Date(latestUpload.uploaded_at).toLocaleString('id-ID'):'-';
   $('#mBy').textContent=latestUpload?.uploaded_by||'-';
   $('#tbody').innerHTML=out.length?out.map(rowHtml).join(''):'<tr><td colspan="8" class="muted">Data tidak ditemukan.</td></tr>';
 }
 
 function promoHtml(p){
-  if(!p||!Object.keys(p).length)return '-';
-  return Object.entries(p).map(([k,v])=>`<span class="promo">${esc(k)}: ${fmt(v)}</span>`).join(' ');
+  let promos = p;
+  if(typeof promos === 'string'){
+    try{ promos = JSON.parse(promos) }catch(_){ promos = {} }
+  }
+  if(!promos||!Object.keys(promos).length)return '-';
+  return Object.entries(promos).map(([k,v])=>`<span class="promo">${esc(k)}: ${fmt(v)}</span>`).join(' ');
+}
+
+function promoCount(p){
+  let promos = p;
+  if(typeof promos === 'string'){
+    try{ promos = JSON.parse(promos) }catch(_){ promos = {} }
+  }
+  return promos && typeof promos === 'object' ? Object.keys(promos).length : 0;
 }
 
 function rowHtml(r){
@@ -310,13 +322,18 @@ function looksLikeGroupedPricelist(rows){
 function classifyPackage(kemasan, satuan){
   const kem=norm(kemasan);
   const sat=norm(satuan);
-  const exactDus = ['dus','zak','bal'].includes(kem) || ['dus','zak','bal'].includes(sat);
-  const variantDus = /^(ds|z|b)\d+$/.test(kem) || kem.includes('dus') || kem.includes('zak') || kem.includes('bal') || sat.includes('zak') || sat.includes('bal');
-  if(exactDus) return { type:'dus', priority:2, promo:false, label:text(kemasan)||text(satuan) };
-  if(variantDus) return { type:'dus', priority:1, promo:true, label:text(kemasan)||text(satuan) };
-  if(kem.includes('pak') || sat.includes('pak')) return { type:'pak', priority:2, promo:false, label:text(kemasan)||text(satuan) };
-  if(kem.includes('pcs') || sat.includes('pcs')) return { type:'pcs', priority:2, promo:false, label:text(kemasan)||text(satuan) };
-  return { type:'', priority:0, promo:false, label:'' };
+  const label=text(kemasan)||text(satuan);
+  const isDusWord = ['dus','zak','bal'].includes(kem) || ['dus','zak','bal'].includes(sat);
+  const isDusVariant =
+    /^(d|ds|z|b)\d+$/.test(kem) ||
+    /^(d|ds|z|b)\d+$/.test(sat) ||
+    kem.includes('dus') || kem.includes('zak') || kem.includes('bal') ||
+    sat.includes('dus') || sat.includes('zak') || sat.includes('bal');
+  if(isDusWord) return { type:'dus', priority:3, promo:false, label, group:'dus' };
+  if(isDusVariant) return { type:'dus', priority:2, promo:true, label, group:'dus' };
+  if(kem.includes('pak') || sat.includes('pak')) return { type:'pak', priority:2, promo:false, label, group:'pak' };
+  if(kem.includes('pcs') || sat.includes('pcs')) return { type:'pcs', priority:2, promo:false, label, group:'pcs' };
+  return { type:'', priority:0, promo:false, label:'', group:'' };
 }
 
 function emptyItem(){
@@ -334,7 +351,8 @@ function emptyItem(){
     note:'',
     _priority_pcs:0,
     _priority_dus:0,
-    _priority_pak:0
+    _priority_pak:0,
+    _base_labels:{ pcs:'', dus:'', pak:'' }
   };
 }
 
@@ -342,17 +360,23 @@ function setPrice(item, pack, price){
   if(!pack?.type || price==null) return;
   const key=`price_${pack.type}`;
   const pkey=`_priority_${pack.type}`;
-  if(item[key]==null || pack.priority >= (item[pkey]||0)){
+  const currentPriority = item[pkey] || 0;
+  if(item[key]==null || pack.priority >= currentPriority){
     item[key]=price;
     item[pkey]=pack.priority;
+    item._base_labels[pack.type]=pack.label || '';
   }
   if(pack.type==='dus'){
     const label=norm(pack.label);
     if(label.includes('zak') || /^z\d+$/.test(label)) item.price_zak = price;
     if(label.includes('bal') || /^b\d+$/.test(label)) item.price_bal = price;
   }
-  if(pack.promo && pack.label){
+  if(pack.label && pack.promo){
     item.promos[pack.label]=price;
+  }
+  const baseLabel = item._base_labels[pack.type];
+  if(baseLabel && item.promos[baseLabel] != null){
+    delete item.promos[baseLabel];
   }
 }
 
