@@ -11,7 +11,7 @@
     *{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
     header{background:linear-gradient(135deg,#1d4ed8,#0f172a);color:white;padding:28px 20px}.wrap{max-width:1180px;margin:auto}h1{margin:0;font-size:28px}.sub{margin-top:8px;opacity:.85}
     .topbar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:18px}.tabs{display:flex;gap:8px}.tab,.btn{border:0;border-radius:12px;padding:11px 16px;font-weight:700;cursor:pointer}.tab{background:rgba(255,255,255,.16);color:white}.tab.active{background:white;color:#1d4ed8}.btn{background:var(--pri);color:white}.btn.secondary{background:#eef2ff;color:#1d4ed8}.btn.danger{background:var(--bad)}.btn.ok{background:var(--ok)}.btn:disabled{opacity:.55;cursor:not-allowed}
-    main{padding:22px 20px 50px}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow)}.metric{font-size:24px;font-weight:800;margin-top:8px}.label{color:var(--muted);font-size:13px}.panel{display:none}.panel.active{display:block}.toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:14px}.search{display:flex;gap:8px;flex-wrap:wrap}.input,select{border:1px solid var(--line);border-radius:12px;padding:11px 12px;background:white;min-width:220px}.tablebox{overflow:auto;background:white;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}table{border-collapse:collapse;width:100%;min-width:980px}th,td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{position:sticky;top:0;background:#f9fafb;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#374151}td{font-size:14px}.price{font-weight:800}.promo{display:inline-block;background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;border-radius:999px;padding:4px 8px;font-weight:700;margin:2px}.promo-stack{display:flex;flex-direction:column;align-items:flex-start;gap:6px}.stock{font-weight:800;color:#065f46}.muted{color:var(--muted)}.hide{display:none!important}.notice{border-left:4px solid var(--pri);background:#eff6ff;padding:12px 14px;border-radius:12px;margin-bottom:14px}.drop{border:2px dashed #93c5fd;background:#eff6ff;border-radius:18px;padding:24px;text-align:center;margin-bottom:16px}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:18px}.modal.open{display:flex}.modal .card{max-width:720px;width:100%}pre{white-space:pre-wrap;background:#0f172a;color:#e5e7eb;border-radius:14px;padding:14px;overflow:auto;font-size:12px}.small{font-size:12px;color:var(--muted)}
+    main{padding:22px 20px 50px}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow)}.metric{font-size:24px;font-weight:800;margin-top:8px}.label{color:var(--muted);font-size:13px}.panel{display:none}.panel.active{display:block}.toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:14px}.search{display:flex;gap:8px;flex-wrap:wrap}.input,select{border:1px solid var(--line);border-radius:12px;padding:11px 12px;background:white;min-width:220px}.tablebox{overflow:auto;background:white;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}table{border-collapse:collapse;width:100%;min-width:980px}th,td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{position:sticky;top:0;background:#f9fafb;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#374151}td{font-size:14px}.price{font-weight:800}.promo{display:inline-block;background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;border-radius:999px;padding:4px 8px;font-weight:700;margin:2px}.promo-stack{display:flex;flex-direction:column;align-items:flex-start;gap:6px}.stock{font-weight:800;color:#065f46}.muted{color:var(--muted)}.hide{display:none!important}.hidden{display:none!important}.notice{border-left:4px solid var(--pri);background:#eff6ff;padding:12px 14px;border-radius:12px;margin-bottom:14px}.drop{border:2px dashed #93c5fd;background:#eff6ff;border-radius:18px;padding:24px;text-align:center;margin-bottom:16px}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:18px}.modal.open{display:flex}.modal .card{max-width:720px;width:100%}pre{white-space:pre-wrap;background:#0f172a;color:#e5e7eb;border-radius:14px;padding:14px;overflow:auto;font-size:12px}.small{font-size:12px;color:var(--muted)}
     @media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}.input{min-width:100%}.search{width:100%}.search>*{flex:1}.toolbar{align-items:stretch}.tab,.btn{padding:10px 12px}h1{font-size:23px}}
   </style>
 </head>
@@ -348,16 +348,21 @@ $('#exportBtn').onclick=()=>{
 
 async function checkAuth(){
   initSupabase();
-  if(!sb)return;
-  const {data}=await sb.auth.getUser();
-  const user=data?.user;
+  if(!sb) return;
+  const {data} = await sb.auth.getUser();
+  const user = data?.user || null;
   currentProfile = user ? await fetchUserRole(user) : null;
   const isAdmin = currentProfile?.role === 'admin';
   $('#loginBox').classList.toggle('hide', !!user);
   $('#adminBox').classList.toggle('hide', !isAdmin);
-  $('#adminUser').textContent = user ? `Login sebagai ${currentProfile.name} (${currentProfile.role})` : '';
+  $('#adminUser').textContent = isAdmin ? `Login sebagai ${currentProfile.name} (${currentProfile.role})` : '';
   updateWelcome();
-  if(isAdmin) await loadPendingRegistrations();
+  if(isAdmin){
+    await loadPendingRegistrations();
+  }else{
+    const box = $('#pendingList');
+    if(box) box.innerHTML = '<div class="muted">Belum ada data pending.</div>';
+  }
 }
 
 $('#loginBtn').onclick=async()=>{
@@ -370,8 +375,13 @@ $('#loginBtn').onclick=async()=>{
 };
 
 $('#logoutBtn').onclick=async()=>{
-  await sb.auth.signOut();
-  checkAuth();
+  try{ await sb.auth.signOut(); }catch(_){ }
+  currentProfile = null;
+  updateWelcome();
+  $('#adminBox').classList.add('hide');
+  $('#loginBox').classList.remove('hide');
+  showTab('sales');
+  await loadData();
 };
 
 $('#registerBtn').onclick=async()=>{
@@ -497,6 +507,21 @@ function classifyPackage(kemasan, satuan){
   if(kem.includes('pak') || sat.includes('pak')) return { type:'pak', priority:2, promo:false, label, group:'pak' };
   if(kem.includes('pcs') || sat.includes('pcs')) return { type:'pcs', priority:2, promo:false, label, group:'pcs' };
   return { type:'', priority:0, promo:false, label:'', group:'' };
+}
+
+
+function findStrictPromoLabel(row, ignoreIdxs=[]){
+  const skip = new Set((ignoreIdxs||[]).filter(i=>Number.isInteger(i) && i>=0));
+  for(let i=0;i<(row?.length||0);i++){
+    if(skip.has(i)) continue;
+    const raw = text(row?.[i]);
+    if(!raw) continue;
+    const compact = raw.replace(/\s+/g,'').trim();
+    if(/^(ds\d+|d\d+|z\d+|b\d+)$/i.test(compact)){
+      return compact;
+    }
+  }
+  return '';
 }
 
 function emptyItem(){
@@ -632,7 +657,10 @@ function parseGroupedPricelist(rows){
       current.stock_number=num(stock);
     }
 
-    const pack=classifyPackage(kemasan,satuan);
+    const strictPromoLabel = findStrictPromoLabel(row, [codeIdx, nameIdx, stockIdx, sellIdx]);
+    const pack = strictPromoLabel
+      ? { type:'dus', priority:2, promo:true, label:strictPromoLabel, group:'dus' }
+      : classifyPackage(kemasan,satuan);
     setPrice(current, pack, sellPrice);
   }
 
@@ -688,8 +716,9 @@ function dbRow(item, uploadId){
 
 $('#uploadBtn').onclick=async()=>{
   initSupabase();
+  await checkAuth();
   const {data:u}=await sb.auth.getUser();
-  if(!u?.user)return alert('Login admin dahulu.');
+  if(!u?.user || currentProfile?.role!=='admin')return alert('Login admin dahulu.');
   const file=$('#file').files[0];
   if(!file)return alert('Pilih file Excel dahulu.');
   const freshRows = await parseFileToRows(file);
