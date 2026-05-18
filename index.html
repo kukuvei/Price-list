@@ -245,24 +245,86 @@ function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt
 $('#q').oninput=()=>renderRows(rows);
 $('#promoFilter').onchange=()=>renderRows(rows);
 
-$('#exportBtn').onclick=()=>{
-  const data=rows.map(r=>{
-    const item=applyDusFallback(r);
-    return {
-      Kode:item.code,
-      Nama:item.name,
-      Stock:item.stock_text,
-      HargaPCS:item.price_pcs,
-      HargaDUS:item.price_dus,
-      HargaPAK:item.price_pak,
-      Promo:JSON.stringify(item.promos||{}),
-      Keterangan:item.note||''
-    };
+function exportBaseDusLabel(item){
+  const stock = String(item?.stock_text || '').toLowerCase();
+  if(/\bbal\b/.test(stock)) return 'Bal';
+  if(/\bzak\b/.test(stock)) return 'Zak';
+  return 'Dus';
+}
+
+function buildExportRows(items){
+  const lines = [];
+  items.forEach(src=>{
+    const item = applyDusFallback({...src});
+    const promos = promoSortEntries(item.promos || {});
+    const detailLines = [];
+
+    if(item.price_pcs != null) detailLines.push({ kemasan:'Pcs', harga:item.price_pcs });
+    if(item.price_pak != null) detailLines.push({ kemasan:'Pak', harga:item.price_pak });
+    if(item.price_dus != null) detailLines.push({ kemasan:exportBaseDusLabel(item), harga:item.price_dus });
+    promos.forEach(([label, value])=>{
+      detailLines.push({ kemasan:formatPromoLabel(label), harga:value });
+    });
+
+    if(!detailLines.length) detailLines.push({ kemasan:'', harga:null });
+
+    detailLines.forEach((line, idx)=>{
+      lines.push([
+        idx === 0 ? (item.code || '') : '',
+        idx === 0 ? (item.name || '') : '',
+        line.kemasan || '',
+        idx === 0 ? (item.stock_text || '') : '',
+        line.harga
+      ]);
+    });
+
+    lines.push(['','','','','']);
   });
-  const ws=XLSX.utils.json_to_sheet(data);
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'Pricelist Sales');
-  XLSX.writeFile(wb,'pricelist-sales.xlsx');
+  if(lines.length && lines[lines.length-1].every(v=>v==='')) lines.pop();
+  return lines;
+}
+
+$('#exportBtn').onclick=()=>{
+  const q = norm($('#q').value);
+  const f = $('#promoFilter').value;
+  const filtered = rows
+    .filter(r=>(!q||norm(`${r.code||''} ${r.name||''}`).includes(q)))
+    .filter(r=>f==='all'||(f==='promo'&&promoCount(r.promos)>0)||(f==='stock'&&Number(r.stock_number)>0));
+
+  const aoa = [
+    ['GARUDA ABADI SINERGI'],
+    ['PRICE LIST SALES'],
+    [],
+    ['KODE','BARANG','KEMASAN','JUMLAH','HRG JUAL'],
+    ...buildExportRows(filtered)
+  ];
+
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+  ws['!cols'] = [
+    { wch: 12 },
+    { wch: 46 },
+    { wch: 12 },
+    { wch: 18 },
+    { wch: 16 }
+  ];
+
+  ws['!merges'] = [
+    { s:{r:0,c:0}, e:{r:0,c:4} },
+    { s:{r:1,c:0}, e:{r:1,c:4} }
+  ];
+
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  for(let r=0; r<=range.e.r; r++){
+    const priceCell = ws[XLSX.utils.encode_cell({r, c:4})];
+    if(priceCell && typeof priceCell.v === 'number'){
+      priceCell.z = '#,##0';
+    }
+  }
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'PRICE LIST SALES');
+  XLSX.writeFile(wb, 'price-list-sales.xlsx');
 };
 
 async function checkAuth(){
