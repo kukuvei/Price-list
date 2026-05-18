@@ -288,8 +288,23 @@ function extractRowsFromSheet(sheet){
   return rawRows.map(normalizeFlatRow).map(applyDusFallback).filter(r=>r.name);
 }
 
+function findGroupedHeader(rows){
+  for(let i=0;i<rows.length;i++){
+    const row=(rows[i]||[]).map(norm);
+    const codeIdx=row.findIndex(v=>v==='kode');
+    const nameIdx=row.findIndex(v=>v==='barang' || v==='namabarang');
+    const packIdx=row.findIndex(v=>v==='kemasan');
+    const stockIdx=row.findIndex(v=>v==='jumlah' || v==='stock' || v==='stok');
+    const sellIdx=row.findIndex(v=>v==='hrgjual' || v==='hargajual' || v==='jual');
+    if(codeIdx>=0 && nameIdx>=0 && packIdx>=0){
+      return { rowIndex:i, codeIdx, nameIdx, packIdx, stockIdx, sellIdx };
+    }
+  }
+  return null;
+}
+
 function looksLikeGroupedPricelist(rows){
-  return rows.some(r=>norm(r?.[2])==='kode' && norm(r?.[3])==='barang' && norm(r?.[6])==='kemasan');
+  return !!findGroupedHeader(rows);
 }
 
 function classifyPackage(kemasan, satuan){
@@ -351,15 +366,45 @@ function applyDusFallback(item){
 }
 
 function parseGroupedPricelist(rows){
+  const header = findGroupedHeader(rows);
+  if(!header) return [];
+
+  const codeIdx = header.codeIdx;
+  const nameIdx = header.nameIdx;
+  const packIdx = header.packIdx;
+  const stockIdx = header.stockIdx >= 0 ? header.stockIdx : -1;
+  const sellIdx = header.sellIdx >= 0 ? header.sellIdx : -1;
+
+  const findSatuanIdx = (row)=>{
+    const start = Math.max(packIdx + 1, 0);
+    const end = sellIdx > start ? sellIdx : Math.min((row?.length||0)-1, start + 6);
+    for(let i=start;i<=end;i++){
+      const v = norm(row?.[i]);
+      if(['pcs','dus','pak','zak','bal','box','lusin','rtg','pail','kg','gr'].includes(v)) return i;
+    }
+    return Math.min(packIdx + 3, (row?.length||0)-1);
+  };
+
+  let satuanIdx = -1;
+  for(let i=header.rowIndex+1;i<Math.min(rows.length, header.rowIndex+12);i++){
+    const candidate = findSatuanIdx(rows[i]||[]);
+    if(candidate > packIdx){
+      satuanIdx = candidate;
+      break;
+    }
+  }
+
   const items=[];
   let current=null;
-  for(const row of rows){
-    const code=text(row?.[2]);
-    const name=text(row?.[3]);
-    const kemasan=text(row?.[6]);
-    const satuan=text(row?.[9]);
-    const stock=text(row?.[11]);
-    const sellPrice=num(row?.[14]);
+
+  for(let ri=header.rowIndex+1; ri<rows.length; ri++){
+    const row = rows[ri]||[];
+    const code = text(row?.[codeIdx]);
+    const name = text(row?.[nameIdx]);
+    const kemasan = text(row?.[packIdx]);
+    const satuan = satuanIdx >= 0 ? text(row?.[satuanIdx]) : '';
+    const stock = stockIdx >= 0 ? text(row?.[stockIdx]) : '';
+    const sellPrice = sellIdx >= 0 ? num(row?.[sellIdx]) : null;
 
     if(code && name){
       if(current?.name) items.push(applyDusFallback(current));
@@ -379,6 +424,7 @@ function parseGroupedPricelist(rows){
     const pack=classifyPackage(kemasan,satuan);
     setPrice(current, pack, sellPrice);
   }
+
   if(current?.name) items.push(applyDusFallback(current));
   return items.filter(r=>r.name);
 }
