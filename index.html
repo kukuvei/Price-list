@@ -359,75 +359,31 @@ function looksLikeGroupedPricelist(rows){
   return !!findGroupedHeader(rows);
 }
 
-function cleanPackToken(value){
-  return String(value||'')
-    .trim()
-    .replace(/\s+/g,'')
-    .replace(/[^a-zA-Z0-9]/g,'');
-}
-
-function normalizePromoTokenLabel(value){
-  const raw = String(value||'').trim();
-  const token = cleanPackToken(raw).toLowerCase();
-  const m = token.match(/^(ds|d|z|b)0*(\d+)$/);
-  if(!m) return raw;
-  const prefixMap = { ds:'Ds', d:'D', z:'Z', b:'B' };
-  return `${prefixMap[m[1]]}${Number(m[2])}`;
-}
-
-function detectPackageFromRow(row, packIdx, sellIdx, satuanIdx, kemasan, satuan){
-  const start = Math.max(0, packIdx);
-  const maxEnd = sellIdx > start ? sellIdx : Math.min((row?.length||0)-1, start + 8);
-  const slice = [];
-  for(let i=start;i<=maxEnd;i++){
-    const raw = text(row?.[i]);
-    if(raw) slice.push(raw);
-  }
-  if(text(kemasan)) slice.unshift(text(kemasan));
-  if(text(satuan)) slice.unshift(text(satuan));
-
-  const exactPromo = slice.find(v => /^(ds|d|z|b)\s*0*\d+$/i.test(String(v||'').trim()));
-  if(exactPromo){
-    return { type:'dus', priority:2, promo:true, label:normalizePromoTokenLabel(exactPromo), group:'dus' };
-  }
-
-  const baseDus = slice.find(v => /^(dus|zak|bal)$/i.test(String(v||'').trim()));
-  if(baseDus){
-    return { type:'dus', priority:3, promo:false, label:text(baseDus), group:'dus' };
-  }
-
-  const containsDusFamily = slice.find(v => /(dus|zak|bal)/i.test(String(v||'')));
-  if(containsDusFamily){
-    return { type:'dus', priority:2, promo:true, label:text(containsDusFamily), group:'dus' };
-  }
-
-  const basePak = slice.find(v => /^pak$/i.test(String(v||'').trim())) || slice.find(v => /pak/i.test(String(v||'')));
-  if(basePak){
-    return { type:'pak', priority:2, promo:false, label:text(basePak), group:'pak' };
-  }
-
-  const basePcs = slice.find(v => /^pcs$/i.test(String(v||'').trim())) || slice.find(v => /pcs/i.test(String(v||'')));
-  if(basePcs){
-    return { type:'pcs', priority:2, promo:false, label:text(basePcs), group:'pcs' };
-  }
-
-  return classifyPackage(kemasan, satuan);
-}
-
 function classifyPackage(kemasan, satuan){
-  const kem=cleanPackToken(kemasan).toLowerCase();
-  const sat=cleanPackToken(satuan).toLowerCase();
-  const label=normalizePromoTokenLabel(text(kemasan)||text(satuan));
-  const isDusWord = ['dus','zak','bal'].includes(kem) || ['dus','zak','bal'].includes(sat);
-  const isDusVariant =
-    /^(d|ds|z|b)0*\d+$/.test(kem) ||
-    /^(d|ds|z|b)0*\d+$/.test(sat) ||
-    kem.includes('dus') || kem.includes('zak') || kem.includes('bal') ||
-    sat.includes('dus') || sat.includes('zak') || sat.includes('bal');
-  if(isDusWord) return { type:'dus', priority:3, promo:false, label:text(kemasan)||text(satuan), group:'dus' };
-  if(isDusVariant) return { type:'dus', priority:2, promo:true, label, group:'dus' };
-  if(kem.includes('pak') || sat.includes('pak')) return { type:'pak', priority:2, promo:false, label:text(kemasan)||text(satuan), group:'pak' };
-  if(kem.includes('pcs') || sat.includes('pcs')) return { type:'pcs', priority:2, promo:false, label:text(kemasan)||text(satuan), group:'pcs' };
+  const kemText = text(kemasan);
+  const satText = text(satuan);
+  const kem = norm(kemText);
+  const sat = norm(satText);
+
+  const exactUnit = v => /^(pcs|dus|pak|zak|bal)$/i.test(String(v||'').trim());
+  const exactPromo = v => /^(d|ds|z|b)\d+$/i.test(String(v||'').trim());
+
+  const label = exactUnit(kemText) || exactPromo(kemText)
+    ? kemText
+    : (exactUnit(satText) || exactPromo(satText) ? satText : '');
+
+  if(/^(dus|zak|bal)$/i.test(kemText) || /^(dus|zak|bal)$/i.test(satText)){
+    return { type:'dus', priority:3, promo:false, label, group:'dus' };
+  }
+  if(/^(d|ds|z|b)\d+$/i.test(kemText) || /^(d|ds|z|b)\d+$/i.test(satText)){
+    return { type:'dus', priority:2, promo:true, label, group:'dus' };
+  }
+  if(/^(pak)$/i.test(kemText) || /^(pak)$/i.test(satText)){
+    return { type:'pak', priority:2, promo:false, label, group:'pak' };
+  }
+  if(/^(pcs)$/i.test(kemText) || /^(pcs)$/i.test(satText)){
+    return { type:'pcs', priority:2, promo:false, label, group:'pcs' };
+  }
   return { type:'', priority:0, promo:false, label:'', group:'' };
 }
 
@@ -522,10 +478,10 @@ function parseGroupedPricelist(rows){
     const start = Math.max(packIdx + 1, 0);
     const end = sellIdx > start ? sellIdx : Math.min((row?.length||0)-1, start + 6);
     for(let i=start;i<=end;i++){
-      const v = norm(row?.[i]);
-      if(['pcs','dus','pak','zak','bal','box','lusin','rtg','pail','kg','gr'].includes(v)) return i;
+      const raw = text(row?.[i]);
+      if(/^(pcs|dus|pak|zak|bal|box|lusin|rtg|pail|kg|gr)$/i.test(raw)) return i;
     }
-    return Math.min(packIdx + 3, (row?.length||0)-1);
+    return -1;
   };
 
   let satuanIdx = -1;
@@ -564,7 +520,7 @@ function parseGroupedPricelist(rows){
       current.stock_number=num(stock);
     }
 
-    const pack=detectPackageFromRow(row, packIdx, sellIdx, satuanIdx, kemasan, satuan);
+    const pack=classifyPackage(kemasan,satuan);
     setPrice(current, pack, sellPrice);
   }
 
@@ -576,7 +532,7 @@ function normalizeFlatRow(o){
   const promos={};
   Object.keys(o).forEach(k=>{
     const nk=norm(k);
-    if(/^(d|ds|z|b)0*\d+$/.test(nk)||nk.includes('promo')){
+    if(/^d?s?\d+$/.test(nk)||/^ds\d+$/.test(nk)||/^z\d+$/.test(nk)||/^b\d+$/.test(nk)||nk.includes('promo')){
       const v=num(o[k]);
       if(v!=null) promos[k.trim()]=v;
     }
