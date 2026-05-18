@@ -459,6 +459,22 @@ function normalizeFlatRow(o){
   return item;
 }
 
+function dbRow(item, uploadId){
+  const clean = applyDusFallback({...item});
+  return {
+    upload_id: uploadId,
+    code: clean.code || '',
+    name: clean.name || '',
+    stock_text: clean.stock_text || '',
+    stock_number: clean.stock_number ?? null,
+    price_pcs: clean.price_pcs ?? null,
+    price_dus: clean.price_dus ?? null,
+    price_pak: clean.price_pak ?? null,
+    promos: clean.promos || {},
+    note: clean.note || ''
+  };
+}
+
 $('#uploadBtn').onclick=async()=>{
   initSupabase();
   const {data:u}=await sb.auth.getUser();
@@ -466,7 +482,7 @@ $('#uploadBtn').onclick=async()=>{
   const file=$('#file').files[0];
   const {data:upload,error:e1}=await sb.from('price_uploads').insert({uploaded_by:u.user.email,filename:file.name}).select().single();
   if(e1)return alert(e1.message);
-  const payload=previewRows.map(r=>applyDusFallback({...r,upload_id:upload.id}));
+  const payload=previewRows.map(r=>dbRow(r, upload.id));
   for(let i=0;i<payload.length;i+=500){
     const {error}=await sb.from('price_items').insert(payload.slice(i,i+500));
     if(error)return alert(error.message);
