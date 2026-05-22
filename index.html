@@ -102,6 +102,7 @@
             <option value="all">Semua produk</option>
             <option value="promo">Hanya promo</option>
             <option value="stock">Stock tersedia</option>
+            <option value="empty">Stock kosong</option>
           </select>
         </div>
         <button class="btn ok hide" id="exportBtn">Export Tampilan</button>
@@ -367,7 +368,12 @@ function renderRows(data){
 
   let out = data
     .filter(r => (!q || norm(`${r.code || ''} ${r.name || ''}`).includes(q)))
-    .filter(r => f === 'all' || (f === 'promo' && promoCount(r.promos) > 0) || (f === 'stock' && Number(r.stock_number) > 0));
+    .filter(r => {
+  if(f === 'all') return true;
+  if(f === 'promo') return promoCount(r.promos) > 0;
+  if(f === 'stock') return Number(r.stock_number) > 0;
+  if(f === 'empty') return !r.stock_number || Number(r.stock_number) <= 0;
+});
 
   $('#mProducts').textContent = data.length;
   $('#mPromo').textContent = data.filter(r => promoCount(r.promos) > 0).length;
