@@ -52,6 +52,13 @@
 }
     .promo-stack{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
     .stock{font-weight:800;color:#065f46}
+    .stock-empty {
+  color: #dc2626;             /* teks merah */
+  background-color: #fee2e2;  /* merah pastel */
+  font-weight: 700;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
     .muted{color:var(--muted)}
     .hide{display:none!important}
     .notice{border-left:4px solid var(--pri);background:#eff6ff;padding:12px 14px;border-radius:12px;margin-bottom:14px}
@@ -430,7 +437,7 @@ function rowHtml(r){
   return `<tr>
     <td>${esc(item.code || '-')}</td>
     <td><b>${esc(item.name)}</b></td>
-    <td class="stock">${esc(item.stock_text || '-')}</td>
+    <td class="stock ${!item.stock_number || Number(item.stock_number) <= 0 ? 'stock-empty' : ''}">${esc(item.stock_text || '-')}</td>
     <td class="price">${fmt(item.price_pcs)}</td>
     <td class="price">${fmt(item.price_dus)}</td>
     <td class="price">${fmt(item.price_pak)}</td>
