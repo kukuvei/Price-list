@@ -119,7 +119,7 @@
             <option value="empty">Stock kosong</option>
           </select>
         </div>
-        <button class="btn ok hide" id="exportBtn">Export Tampilan</button>
+        <!-- <button class="btn ok hide" id="exportBtn">Export Tampilan</button> -->
       </div>
       <div class="tablebox">
         <table>
@@ -447,29 +447,6 @@ $('#q').onfocus = () => clearSearchIfLooksLikeEmail();
 $('#q').oninput = () => renderRows(rows);
 $('#promoFilter').onchange = () => renderRows(rows);
 
-$('#exportBtn').onclick = () => {
-  if(currentProfile?.role !== 'admin'){
-    alert('Export data hanya untuk Admin.');
-    return;
-  }
-  const data = rows.map(r => {
-    const item = applyDusFallback(r);
-    return {
-      Kode: item.code,
-      Nama: item.name,
-      Stock: item.stock_text,
-      HargaPCS: item.price_pcs,
-      HargaDUS: item.price_dus,
-      HargaPAK: item.price_pak,
-      Promo: JSON.stringify(item.promos || {}),
-      Keterangan: item.note || ''
-    };
-  });
-  const ws = XLSX.utils.json_to_sheet(data);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Pricelist Sales');
-  XLSX.writeFile(wb, 'pricelist-sales.xlsx');
-};
 
 async function checkAuth(){
   initSupabase();
