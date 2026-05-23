@@ -10,7 +10,26 @@
     :root{--bg:#f6f7fb;--card:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;--pri:#2563eb;--ok:#16a34a;--warn:#f59e0b;--bad:#dc2626;--shadow:0 10px 30px rgba(15,23,42,.08)}
     *{box-sizing:border-box}
     body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
-    header{background:linear-gradient(135deg,#1d4ed8,#0f172a);color:white;padding:28px 20px}
+
+    <!-- Tombol Logout di Tab Sales -->
+<button id="logoutSalesBtn" class="btn danger" style="position: fixed; top: 10px; right: 10px;">
+  Logout
+</button>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+const SUPABASE_URL = 'https://mitjosxpyeydjdrpuszl.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_-wwqDu_np893Rg32XajLEQ_w0-5MvBD'; // gunakan publishable key
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+document.getElementById('logoutSalesBtn').addEventListener('click', async () => {
+  await supabase.auth.signOut();
+  window.location.href = 'https://login-page-gas-git-main-kukuveis-projects.vercel.app';
+});
+</script>
+
+     header{background:linear-gradient(135deg,#1d4ed8,#0f172a);color:white;padding:28px 20px}
     .wrap{max-width:1180px;margin:auto}
     h1{margin:0;font-size:28px}
     .sub{margin-top:8px;opacity:.85}
