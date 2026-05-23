@@ -1,97 +1,62 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Price List</title>
-  <script type="module" src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"></script>
-  <style>
-    #logoutSalesBtn {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      padding: 8px 12px;
-      background-color: #e74c3c;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-  </style>
-</head>
-<body>
-  <h1>Price List</h1>
-  <div id="salesData">Loading Sales Data...</div>
-  <button id="logoutSalesBtn">Logout</button>
+<section id="admin" class="panel">
+  <div class="notice">Admin login memakai Supabase Auth. Harga beli otomatis dibuang dan tidak ditampilkan di tab Sales.</div>
 
-  <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+  <div id="loginBox" class="card">
+    <h2>Login Admin</h2>
+    <div class="row">
+      <input class="input" id="email" type="email" placeholder="Email admin" />
+      <input class="input" id="password" type="password" placeholder="Password" />
+      <button class="btn" id="loginBtn">Login</button>
+    </div>
 
-    // --- Supabase Config ---
-    const SUPABASE_URL = 'https://mitjosxpyeydjdrpuszl.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_-wwqDu_np893Rg32XajLEQ_w0-5MvBD';
-    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+    <a href="#" id="forgotPasswordLink" class="forgot-link">Lupa Password?</a>
 
-    let currentSessionId = null;
+    <p class="small">
+      Buat user di Supabase Authentication. Hak akses Admin/Sales diatur dari UUID user pada variabel USER_ROLES di kode.
+    </p>
+  </div>
 
-    // --- Check session on page load ---
-    async function checkSession() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        window.location.href = 'https://login-page-gas-git-main-kukuveis-projects.vercel.app';
-        return;
-      }
-      await logLoginSession(session);
-      fetchSalesData();
-    }
+  <div id="adminBox" class="hide">
+    <div class="card">
+      <div class="toolbar">
+        <div>
+          <h2>Upload Pricelist Terbaru</h2>
+          <div class="small" id="adminUser"></div>
+        </div>
+        <button class="btn danger" id="logoutBtn">Logout</button>
+      </div>
+      <div class="drop">
+        <input type="file" id="file" accept=".xlsx,.xls,.csv" />
+        <p>Pilih file Excel dari sistem. Sheet pertama akan dibaca.</p>
+      </div>
+      <div class="row">
+        <button class="btn" id="previewBtn">Preview</button>
+        <button class="btn ok" id="uploadBtn" disabled>Upload ke Supabase</button>
+      </div>
+      <p class="small">
+        Kolom yang dikenali otomatis: kode, nama barang, jumlah/stock, harga jual pcs, harga jual dus, harga jual pak, harga jual zak, harga jual bal, dan promo.
+        Untuk format raw report bertingkat, kemasan Dus / Zak / Bal otomatis digabung ke kolom Harga DUS.
+        Kolom harga beli tidak akan disimpan.
+      </p>
+    </div>
 
-    // --- Log login ---
-    async function logLoginSession(session) {
-      const { data, error } = await supabase.from('user_sessions')
-        .insert([{ user_id: session.user.id }])
-        .select('id')
-        .single();
-      if (data) currentSessionId = data.id;
-    }
-
-    // --- Logout ---
-    async function logout() {
-      if(currentSessionId) {
-        await supabase.from('user_sessions')
-          .update({ logout_at: new Date() })
-          .eq('id', currentSessionId);
-      }
-      await supabase.auth.signOut();
-      window.location.href = 'https://login-page-gas-git-main-kukuveis-projects.vercel.app';
-    }
-
-    document.getElementById('logoutSalesBtn').addEventListener('click', logout);
-
-    // --- Fetch Sales Data ---
-    async function fetchSalesData() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      const { data, error } = await supabase
-        .from('price_items')
-        .select('*');
-
-      if(error) {
-        document.getElementById('salesData').innerText = 'Error fetching data';
-        console.error(error);
-        return;
-      }
-
-      if(data && data.length) {
-        const html = data.map(item => `<div>${item.name} - ${item.stock}</div>`).join('');
-        document.getElementById('salesData').innerHTML = html;
-      } else {
-        document.getElementById('salesData').innerText = 'No Sales Data Available';
-      }
-    }
-
-    // --- Init ---
-    checkSession();
-  </script>
-</body>
-</html>
+    <div class="tablebox" style="margin-top:16px">
+      <table>
+        <thead>
+          <tr>
+            <th>Kode</th>
+            <th>Nama</th>
+            <th>Stock</th>
+            <th>PCS</th>
+            <th>DUS</th>
+            <th>PAK</th>
+            <th>Promo</th>
+          </tr>
+        </thead>
+        <tbody id="previewBody">
+          <tr><td colspan="7" class="muted">Preview upload akan muncul di sini.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
