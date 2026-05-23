@@ -493,10 +493,14 @@ $('#loginBtn').onclick = async () => {
 };
 
 $('#logoutBtn').onclick = async () => {
+  if(currentSessionId) {
+    await sb.from('user_sessions')
+      .update({ logout_at: new Date() })
+      .eq('id', currentSessionId);
+  }
   await sb.auth.signOut();
   checkAuth();
 };
-
 async function forgotPassword(){
   initSupabase();
   if(!sb) return alert('Isi Setup Supabase dahulu.');
@@ -848,7 +852,25 @@ $('#uploadBtn').onclick = async () => {
   renderRows(rows);
   showTab('sales');
 };
+  
+let currentSessionId = null;
 
+// Log login setiap kali Google login sukses
+async function logLoginSession() {
+  if(!sb) return;
+  const { data: { session } } = await sb.auth.getSession();
+  if(session) {
+    const { data, error } = await sb.from('user_sessions')
+      .insert([{ user_id: session.user.id }])
+      .select('id')
+      .single();
+    if(data) currentSessionId = data.id;
+  }
+}
+
+// Panggil setelah login Google berhasil
+logLoginSession();
+  
 initSupabase();
 checkAuth();
 updateExportAccess();
